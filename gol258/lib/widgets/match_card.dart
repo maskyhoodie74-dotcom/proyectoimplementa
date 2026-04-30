@@ -19,29 +19,37 @@ class MatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
+        color: AppColors.bgCardLight.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.divider)),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppColors.divider.withOpacity(0.5), width: 0.5)),
             ),
             child: Row(
               children: [
                 if (partido.categoria != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.maroonDark,
-                      borderRadius: BorderRadius.circular(6),
+                      gradient: AppColors.maroonGradient,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.gold.withOpacity(0.3)),
                     ),
-                    child: Text(partido.categoria!,
-                        style: GoogleFonts.inter(color: AppColors.gold, fontSize: 10)),
+                    child: Text(partido.categoria!.toUpperCase(),
+                        style: GoogleFonts.inter(color: AppColors.gold, fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
                   ),
                 const SizedBox(width: 8),
                 Text(
@@ -73,18 +81,28 @@ class MatchCard extends StatelessWidget {
                       ? Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(partido.marcador,
-                                style: GoogleFonts.oswald(
-                                    color: AppColors.gold,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w700)),
-                            Text('FINAL',
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.bgDark.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.gold.withOpacity(0.2)),
+                              ),
+                              child: Text(partido.marcador,
+                                  style: GoogleFonts.inter(
+                                      color: AppColors.gold,
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 2)),
+                            ),
+                            const SizedBox(height: 4),
+                            Text('FINALIZADO',
                                 style: GoogleFonts.inter(
-                                    color: AppColors.textSecondary, fontSize: 9, letterSpacing: 1.5)),
+                                    color: AppColors.textSecondary, fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 1.5)),
                           ],
                         )
                       : Text('VS',
-                          style: GoogleFonts.oswald(
+                          style: GoogleFonts.inter(
                               color: AppColors.textSecondary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600)),
@@ -133,22 +151,23 @@ class MatchCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 48, height: 48,
+          width: 56, height: 56,
           decoration: BoxDecoration(
-            color: AppColors.maroonDark,
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.bgDark.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: isWinner ? AppColors.gold : AppColors.divider,
-              width: isWinner ? 1.5 : 1,
+              color: isWinner ? AppColors.gold : AppColors.divider.withOpacity(0.5),
+              width: isWinner ? 1.5 : 0.5,
             ),
+            boxShadow: isWinner ? AppColors.goldGlow : null,
           ),
           child: Center(
             child: escudo != null
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(escudo, width: 40, height: 40, fit: BoxFit.cover))
+                    borderRadius: BorderRadius.circular(28),
+                    child: Image.network(escudo, width: 44, height: 44, fit: BoxFit.cover))
                 : Text(nombre.isNotEmpty ? nombre[0].toUpperCase() : '?',
-                    style: GoogleFonts.oswald(
+                    style: GoogleFonts.inter(
                         color: AppColors.gold, fontSize: 20, fontWeight: FontWeight.w700)),
           ),
         ),
@@ -157,7 +176,7 @@ class MatchCard extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.oswald(
+            style: GoogleFonts.inter(
                 color: isWinner ? AppColors.textPrimary : AppColors.textSecondary,
                 fontSize: 12,
                 fontWeight: isWinner ? FontWeight.w700 : FontWeight.w400)),

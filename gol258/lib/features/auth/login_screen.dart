@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -59,68 +60,73 @@ class _LoginScreenState extends State<LoginScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          gradient: RadialGradient(
+            center: Alignment(-0.8, -0.6),
+            radius: 1.5,
             colors: [
-              AppColors.maroonDeep,
-              AppColors.bgDark,
+              AppColors.maroonDark,
               AppColors.bgDark,
             ],
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: SlideTransition(
-                position: _slideAnim,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 40),
-                    // LOGO
-                    _buildLogo(),
-                    const SizedBox(height: 28),
-                    // TITLE
-                    Text(
-                      'ACCESO AL\nCAMPEONATO',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.oswald(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.gold,
-                        letterSpacing: 2,
-                        height: 1.1,
-                      ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: SlideTransition(
+                    position: _slideAnim,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 40),
+                        // LOGO
+                        _buildLogo(),
+                        const SizedBox(height: 28),
+                        // TITLE
+                        Text(
+                          'ACCESO AL\nCAMPEONATO',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.gold,
+                            letterSpacing: -0.5,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        // LOGIN CARD
+                        _buildLoginCard(auth),
+                        const SizedBox(height: 20),
+                        // ESPECTADOR
+                        _buildEspectadorButton(),
+                        const SizedBox(height: 32),
+                        // FOOTER
+                        Text(
+                          'SISTEMA DE GESTIÓN DE LIGA GOL 258 • VER 1.0',
+                          style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                            fontSize: 10,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'CBTis 258   •   COBRAS',
+                          style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
-                    const SizedBox(height: 32),
-                    // LOGIN CARD
-                    _buildLoginCard(auth),
-                    const SizedBox(height: 20),
-                    // ESPECTADOR
-                    _buildEspectadorButton(),
-                    const SizedBox(height: 32),
-                    // FOOTER
-                    Text(
-                      'SISTEMA DE GESTIÓN DE LIGA GOL 258 • VER 1.0',
-                      style: GoogleFonts.inter(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'CBTis 258   •   COBRAS',
-                      style: GoogleFonts.oswald(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -153,20 +159,20 @@ class _LoginScreenState extends State<LoginScreen>
             const Text('⚽', style: TextStyle(fontSize: 32)),
             Text(
               'GOL',
-              style: GoogleFonts.oswald(
+              style: GoogleFonts.inter(
                 color: AppColors.gold,
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 3,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1,
               ),
             ),
             Text(
               '258',
-              style: GoogleFonts.oswald(
+              style: GoogleFonts.inter(
                 color: AppColors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
               ),
             ),
           ],
@@ -176,14 +182,19 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildLoginCard(AuthProvider auth) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider),
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.bgCardLight.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+            boxShadow: AppColors.glassShadow,
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -196,11 +207,11 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           const SizedBox(height: 12),
           Text('PERSONAL\nAUTORIZADO',
-              style: GoogleFonts.oswald(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
+              style: GoogleFonts.inter(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
-                letterSpacing: 1.5,
+                letterSpacing: -0.5,
                 height: 1.1,
               )),
           const SizedBox(height: 6),
@@ -291,40 +302,58 @@ class _LoginScreenState extends State<LoginScreen>
             width: double.infinity,
             child: ElevatedButton(
               onPressed: auth.loading ? null : _login,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.maroonDark,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
               child: auth.loading
                   ? const SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                          color: AppColors.bgDark, strokeWidth: 2))
-                  : const Text('AUTENTICAR'),
+                          color: AppColors.textPrimary, strokeWidth: 2))
+                  : Text('AUTENTICAR',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                      )),
             ),
           ),
         ],
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildEspectadorButton() {
     return SizedBox(
       width: double.infinity,
-      child: OutlinedButton.icon(
+      child: ElevatedButton.icon(
         onPressed: _enterAsEspectador,
         icon: const Icon(Icons.remove_red_eye_outlined,
             color: AppColors.textPrimary, size: 18),
         label: Text(
           'ENTRAR COMO ESPECTADOR',
-          style: GoogleFonts.oswald(
+          style: GoogleFonts.inter(
             color: AppColors.textPrimary,
             fontSize: 14,
-            letterSpacing: 1.5,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1,
           ),
         ),
-        style: OutlinedButton.styleFrom(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.maroonDark,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          side: const BorderSide(color: AppColors.maroon, width: 1.5),
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),

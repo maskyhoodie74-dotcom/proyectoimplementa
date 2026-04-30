@@ -8,6 +8,7 @@ import '../equipos/equipos_provider.dart';
 import '../../core/theme.dart';
 import '../../models/partido.dart';
 import '../../widgets/match_card.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class CalendarioScreen extends StatefulWidget {
   const CalendarioScreen({super.key});
@@ -16,9 +17,14 @@ class CalendarioScreen extends StatefulWidget {
 }
 
 class _CalendarioScreenState extends State<CalendarioScreen> {
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+
   @override
   void initState() {
     super.initState();
+    _selectedDay = _focusedDay;
     Future.microtask(() {
       context.read<PartidosProvider>().fetchPartidos();
       context.read<EquiposProvider>().fetchEquipos();
@@ -34,13 +40,8 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     );
   }
 
-  Map<String, List<Partido>> _groupByDate(List<Partido> partidos) {
-    final grouped = <String, List<Partido>>{};
-    for (final p in partidos) {
-      final key = DateFormat('EEEE, d MMM', 'es_MX').format(p.fecha).toUpperCase();
-      grouped.putIfAbsent(key, () => []).add(p);
-    }
-    return grouped;
+  List<Partido> _getEventsForDay(DateTime day, List<Partido> todos) {
+    return todos.where((p) => isSameDay(p.fecha, day)).toList();
   }
 
   @override
@@ -48,12 +49,14 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     final partidos = context.watch<PartidosProvider>();
     final isAdmin = context.watch<AuthProvider>().isAdmin;
     final todos = [...partidos.proximosPartidos, ...partidos.resultados];
-    final grouped = _groupByDate(todos);
+    final selectedEvents = _selectedDay != null ? _getEventsForDay(_selectedDay!, todos) : <Partido>[];
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.bgDark,
+        elevation: 0,
         title: Text('CALENDARIO',
-            style: GoogleFonts.oswald(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
+            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
         actions: [
           if (isAdmin)
             IconButton(
@@ -64,37 +67,113 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
       ),
       body: partidos.loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
-          : todos.isEmpty
-              ? Center(child: Text('Sin partidos programados',
-                  style: GoogleFonts.oswald(color: AppColors.textSecondary, fontSize: 18)))
-              : RefreshIndicator(
-                  color: AppColors.gold,
-                  backgroundColor: AppColors.bgCard,
-                  onRefresh: () => partidos.fetchPartidos(),
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: grouped.entries.map((entry) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Text(entry.key,
-                                style: GoogleFonts.oswald(
-                                    color: AppColors.gold,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 1)),
+          : RefreshIndicator(
+              color: AppColors.gold,
+              backgroundColor: AppColors.bgCard,
+              onRefresh: () => partidos.fetchPartidos(),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: Column(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.bgCard,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: TableCalendar<Partido>(
+                          firstDay: DateTime.utc(2020, 1, 1),
+                          lastDay: DateTime.utc(2030, 12, 31),
+                          focusedDay: _focusedDay,
+                          calendarFormat: _calendarFormat,
+                          eventLoader: (day) => _getEventsForDay(day, todos),
+                          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                          onDaySelected: (selectedDay, focusedDay) {
+                            if (!isSameDay(_selectedDay, selectedDay)) {
+                              setState(() {
+                                _selectedDay = selectedDay;
+                                _focusedDay = focusedDay;
+                              });
+                            }
+                          },
+                          onFormatChanged: (format) {
+                            if (_calendarFormat != format) {
+                              setState(() {
+                                _calendarFormat = format;
+                              });
+                            }
+                          },
+                          onPageChanged: (focusedDay) {
+                            _focusedDay = focusedDay;
+                          },
+                          calendarStyle: CalendarStyle(
+                            defaultTextStyle: const TextStyle(color: AppColors.textPrimary),
+                            weekendTextStyle: const TextStyle(color: AppColors.textSecondary),
+                            outsideTextStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
+                            selectedDecoration: const BoxDecoration(
+                              color: AppColors.gold,
+                              shape: BoxShape.circle,
+                            ),
+                            selectedTextStyle: const TextStyle(color: AppColors.bgDark, fontWeight: FontWeight.bold),
+                            todayDecoration: BoxDecoration(
+                              color: AppColors.maroonDark.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            markerDecoration: const BoxDecoration(
+                              color: AppColors.maroon,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                          ...entry.value.map((p) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: MatchCard(partido: p, showScore: p.jugado, showDetails: !p.jugado),
-                              )),
-                        ],
-                      );
-                    }).toList(),
+                          headerStyle: HeaderStyle(
+                            formatButtonVisible: false,
+                            titleCentered: true,
+                            titleTextStyle: GoogleFonts.inter(color: AppColors.gold, fontSize: 16, fontWeight: FontWeight.bold),
+                            leftChevronIcon: const Icon(Icons.chevron_left, color: AppColors.gold),
+                            rightChevronIcon: const Icon(Icons.chevron_right, color: AppColors.gold),
+                          ),
+                          daysOfWeekStyle: const DaysOfWeekStyle(
+                            weekdayStyle: TextStyle(color: AppColors.textSecondary),
+                            weekendStyle: TextStyle(color: AppColors.textSecondary),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _selectedDay != null
+                                ? DateFormat('EEEE, d MMM yyyy', 'es_MX').format(_selectedDay!).toUpperCase()
+                                : 'SELECCIONA UNA FECHA',
+                            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 1),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: selectedEvents.isEmpty
+                            ? Center(child: Text('No hay partidos este día.', style: GoogleFonts.inter(color: AppColors.textSecondary)))
+                            : ListView.builder(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: selectedEvents.length,
+                                itemBuilder: (context, index) {
+                                  final p = selectedEvents[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: MatchCard(partido: p, showScore: p.jugado, showDetails: !p.jugado),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
+            ),
     );
   }
 }
@@ -165,7 +244,7 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
                 decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 20),
             Text('PROGRAMAR PARTIDO',
-                style: GoogleFonts.oswald(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
+                style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
             const SizedBox(height: 20),
             _dropLabel('EQUIPO LOCAL'),
             const SizedBox(height: 8),
@@ -269,7 +348,7 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
                   style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.maroon), padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: Text('CANCELAR', style: GoogleFonts.oswald(color: AppColors.textPrimary, letterSpacing: 1.5)),
+                  child: Text('CANCELAR', style: GoogleFonts.inter(color: AppColors.textPrimary, letterSpacing: 1.5)),
                 )),
           ],
         ),

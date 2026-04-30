@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -26,8 +28,14 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.bgDark,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.gold, size: 20),
+          onPressed: () => context.go('/home'),
+        ),
         title: Text('RESULTADOS',
-            style: GoogleFonts.oswald(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
+            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 1)),
       ),
       body: partidos.loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
@@ -37,21 +45,37 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
                   children: [
                     const Text('🏆', style: TextStyle(fontSize: 48)),
                     const SizedBox(height: 16),
-                    Text('Sin resultados todavía', style: GoogleFonts.oswald(color: AppColors.textSecondary, fontSize: 18)),
+                    Text('Sin resultados todavía', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 18)),
                   ],
                 ))
               : RefreshIndicator(
                   color: AppColors.gold,
                   backgroundColor: AppColors.bgCard,
                   onRefresh: () => partidos.fetchPartidos(),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: resultados.length,
-                    itemBuilder: (_, i) {
-                      final p = resultados[i];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: MatchCard(partido: p, showScore: true),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isDesktop = constraints.maxWidth > 800;
+                      final contentWidth = isDesktop ? 1200.0 : double.infinity;
+                      final cardWidth = isDesktop ? 380.0 : double.infinity;
+
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: contentWidth),
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                            padding: const EdgeInsets.all(16),
+                            child: Wrap(
+                              spacing: 16,
+                              runSpacing: 16,
+                              children: resultados.map((p) {
+                                return SizedBox(
+                                  width: cardWidth,
+                                  child: MatchCard(partido: p, showScore: true),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
                       );
                     },
                   ),

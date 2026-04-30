@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../equipos/equipos_provider.dart';
@@ -34,8 +35,12 @@ class _EquiposScreenState extends State<EquiposScreen> {
     final isAdmin = context.watch<AuthProvider>().isAdmin;
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.gold, size: 20),
+          onPressed: () => context.go('/admin'),
+        ),
         title: Text('EQUIPOS',
-            style: GoogleFonts.oswald(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
+            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
         actions: [
           if (isAdmin)
             IconButton(
@@ -49,86 +54,91 @@ class _EquiposScreenState extends State<EquiposScreen> {
           : equipos.equipos.isEmpty
               ? Center(
                   child: Text('Sin equipos registrados',
-                      style: GoogleFonts.oswald(color: AppColors.textSecondary, fontSize: 18)))
+                      style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 18)))
               : RefreshIndicator(
                   color: AppColors.gold,
                   backgroundColor: AppColors.bgCard,
                   onRefresh: () => equipos.fetchEquipos(),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: equipos.equipos.length,
-                    itemBuilder: (_, i) {
-                      final eq = equipos.equipos[i];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.bgCard,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.divider),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          leading: Container(
-                            width: 48, height: 48,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 800),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: equipos.equipos.length,
+                        itemBuilder: (_, i) {
+                          final eq = equipos.equipos[i];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: AppColors.maroonDark,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.gold.withOpacity(0.4)),
+                              color: AppColors.bgCard,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.divider),
                             ),
-                            child: Center(
-                              child: Text(
-                                eq.nombre.isNotEmpty ? eq.nombre[0].toUpperCase() : '?',
-                                style: GoogleFonts.oswald(
-                                    color: AppColors.gold, fontSize: 20, fontWeight: FontWeight.w700),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              leading: Container(
+                                width: 48, height: 48,
+                                decoration: BoxDecoration(
+                                  color: AppColors.maroonDark,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.gold.withOpacity(0.4)),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    eq.nombre.isNotEmpty ? eq.nombre[0].toUpperCase() : '?',
+                                    style: GoogleFonts.inter(
+                                        color: AppColors.gold, fontSize: 20, fontWeight: FontWeight.w700),
+                                  ),
+                                ),
                               ),
+                              title: Text(eq.nombre,
+                                  style: GoogleFonts.inter(
+                                      color: AppColors.textPrimary, fontSize: 16)),
+                              subtitle: Text('${eq.categoria ?? "Sin categoría"} • DT: ${eq.entrenador ?? "N/A"}',
+                                  style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12)),
+                              trailing: isAdmin
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.edit_outlined,
+                                              color: AppColors.textSecondary, size: 18),
+                                          onPressed: () => _showForm(equipo: eq),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline,
+                                              color: AppColors.error, size: 18),
+                                          onPressed: () async {
+                                            final ok = await showDialog<bool>(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                backgroundColor: AppColors.bgCard,
+                                                title: Text('Eliminar equipo',
+                                                    style: GoogleFonts.inter(color: AppColors.textPrimary)),
+                                                content: Text('¿Eliminar "${eq.nombre}"?',
+                                                    style: GoogleFonts.inter(color: AppColors.textSecondary)),
+                                                actions: [
+                                                  TextButton(onPressed: () => Navigator.pop(ctx, false),
+                                                      child: const Text('Cancelar')),
+                                                  TextButton(onPressed: () => Navigator.pop(ctx, true),
+                                                      child: const Text('Eliminar',
+                                                          style: TextStyle(color: AppColors.error))),
+                                                ],
+                                              ),
+                                            );
+                                            if (ok == true && mounted) {
+                                              await context.read<EquiposProvider>().eliminarEquipo(eq.id);
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  : null,
                             ),
-                          ),
-                          title: Text(eq.nombre,
-                              style: GoogleFonts.oswald(
-                                  color: AppColors.textPrimary, fontSize: 16)),
-                          subtitle: Text('${eq.categoria ?? "Sin categoría"} • DT: ${eq.entrenador ?? "N/A"}',
-                              style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12)),
-                          trailing: isAdmin
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit_outlined,
-                                          color: AppColors.textSecondary, size: 18),
-                                      onPressed: () => _showForm(equipo: eq),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline,
-                                          color: AppColors.error, size: 18),
-                                      onPressed: () async {
-                                        final ok = await showDialog<bool>(
-                                          context: context,
-                                          builder: (ctx) => AlertDialog(
-                                            backgroundColor: AppColors.bgCard,
-                                            title: Text('Eliminar equipo',
-                                                style: GoogleFonts.oswald(color: AppColors.textPrimary)),
-                                            content: Text('¿Eliminar "${eq.nombre}"?',
-                                                style: GoogleFonts.inter(color: AppColors.textSecondary)),
-                                            actions: [
-                                              TextButton(onPressed: () => Navigator.pop(ctx, false),
-                                                  child: const Text('Cancelar')),
-                                              TextButton(onPressed: () => Navigator.pop(ctx, true),
-                                                  child: const Text('Eliminar',
-                                                      style: TextStyle(color: AppColors.error))),
-                                            ],
-                                          ),
-                                        );
-                                        if (ok == true && mounted) {
-                                          await context.read<EquiposProvider>().eliminarEquipo(eq.id);
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                )
-                              : null,
-                        ),
-                      );
-                    },
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
     );
@@ -174,13 +184,27 @@ class _EquipoFormSheetState extends State<_EquipoFormSheet> {
       'categoria': _categoria,
       'entrenador': _entrenadorCtrl.text.trim().isEmpty ? null : _entrenadorCtrl.text.trim(),
     };
-    bool ok;
+    
     if (widget.equipo != null) {
-      ok = await context.read<EquiposProvider>().editarEquipo(widget.equipo!.id, data);
+      final ok = await context.read<EquiposProvider>().editarEquipo(widget.equipo!.id, data);
+      if (ok && mounted) Navigator.pop(context);
     } else {
-      ok = await context.read<EquiposProvider>().crearEquipo(data);
+      final creds = await context.read<EquiposProvider>().crearEquipo(data);
+      if (creds != null && mounted) {
+        Navigator.pop(context); // close sheet
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.bgCard,
+            title: Text('CUENTA DE EQUIPO CREADA', style: GoogleFonts.inter(color: AppColors.gold)),
+            content: Text('Por favor, comparte estos accesos con el representante del equipo:\n\nUsuario: ${creds['correo']}\nClave: ${creds['contrasena']}', style: GoogleFonts.inter(color: AppColors.textPrimary)),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('ENTENDIDO', style: TextStyle(color: AppColors.gold))),
+            ],
+          ),
+        );
+      }
     }
-    if (ok && mounted) Navigator.pop(context);
     if (mounted) setState(() => _saving = false);
   }
 
@@ -206,7 +230,7 @@ class _EquipoFormSheetState extends State<_EquipoFormSheet> {
             Row(children: [
               Container(width: 3, height: 36, color: AppColors.gold, margin: const EdgeInsets.only(right: 12)),
               Text(widget.equipo != null ? 'EDITAR EQUIPO' : 'REGISTRO DE EQUIPO',
-                  style: GoogleFonts.oswald(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
+                  style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
             ]),
             const SizedBox(height: 4),
             Text('Completa los datos técnicos de la escuadra',
@@ -258,7 +282,7 @@ class _EquipoFormSheetState extends State<_EquipoFormSheet> {
                       side: const BorderSide(color: AppColors.maroon),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: Text('CANCELAR', style: GoogleFonts.oswald(color: AppColors.textPrimary, letterSpacing: 1.5)),
+                  child: Text('CANCELAR', style: GoogleFonts.inter(color: AppColors.textPrimary, letterSpacing: 1.5)),
                 )),
           ],
         ),

@@ -1,3 +1,5 @@
+import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -33,36 +35,51 @@ class _PosicionesScreenState extends State<PosicionesScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.bgDark,
+        elevation: 0,
         title: Text('POSICIONES',
-            style: GoogleFonts.oswald(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
+            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
       ),
       body: partidos.loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
-          : entries.isEmpty
-              ? Center(child: Text('Sin datos de posiciones',
-                  style: GoogleFonts.oswald(color: AppColors.textSecondary, fontSize: 18)))
               : RefreshIndicator(
                   color: AppColors.gold,
                   backgroundColor: AppColors.bgCard,
                   onRefresh: () => partidos.fetchPartidos(),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        _buildHeader(),
-                        const SizedBox(height: 8),
-                        ...entries.asMap().entries.map((e) {
-                          final pos = e.key + 1;
-                          final nombre = e.value.key;
-                          final stats = e.value.value;
-                          return _buildRow(pos, nombre, stats);
-                        }),
-                        const SizedBox(height: 24),
-                        _buildLegend(),
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isDesktop = constraints.maxWidth > 800;
+                      final contentWidth = isDesktop ? 1000.0 : double.infinity;
+
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: contentWidth),
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                            padding: EdgeInsets.all(isDesktop ? 32 : 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 8),
+                                _buildHeader(),
+                                const SizedBox(height: 8),
+                                if (entries.isEmpty)
+                                  _buildEmptyRow()
+                                else
+                                  ...entries.asMap().entries.map((e) {
+                                    final pos = e.key + 1;
+                                    final nombre = e.value.key;
+                                    final stats = e.value.value;
+                                    return _buildRow(pos, nombre, stats);
+                                  }),
+                                const SizedBox(height: 24),
+                                _buildLegend(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
@@ -70,11 +87,11 @@ class _PosicionesScreenState extends State<PosicionesScreen> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.maroonDark,
+        gradient: AppColors.goldGradient,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+        boxShadow: AppColors.goldGlow,
       ),
       child: Row(
         children: [
@@ -87,6 +104,28 @@ class _PosicionesScreenState extends State<PosicionesScreen> {
           SizedBox(width: 32, child: Text('GD', textAlign: TextAlign.center, style: _headerStyle())),
           SizedBox(width: 36, child: Text('PTS', textAlign: TextAlign.center, style: _headerStyle())),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyRow() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Center(
+        child: Text(
+          'AÚN NO HAY DATOS REGISTRADOS',
+          style: GoogleFonts.inter(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            letterSpacing: 1.5,
+          ),
+        ),
       ),
     );
   }
@@ -143,7 +182,7 @@ class _PosicionesScreenState extends State<PosicionesScreen> {
             width: 36,
             child: Text('${stats['Pts'] ?? 0}',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.oswald(
+                style: GoogleFonts.inter(
                     color: AppColors.gold, fontSize: 16, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -188,8 +227,8 @@ class _PosicionesScreenState extends State<PosicionesScreen> {
     );
   }
 
-  TextStyle _headerStyle() => GoogleFonts.oswald(
-      color: AppColors.textSecondary, fontSize: 11, letterSpacing: 1, fontWeight: FontWeight.w600);
+  TextStyle _headerStyle() => GoogleFonts.inter(
+      color: AppColors.bgDark, fontSize: 11, letterSpacing: 1, fontWeight: FontWeight.w700);
 
   TextStyle _cellStyle() =>
       GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 13);

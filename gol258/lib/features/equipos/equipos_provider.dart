@@ -28,15 +28,35 @@ class EquiposProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> crearEquipo(Map<String, dynamic> data) async {
+  Future<Map<String, String>?> crearEquipo(Map<String, dynamic> data) async {
     try {
-      await supabase.from('equipos').insert(data);
+      final nombre = data['nombre_equipo'] as String;
+      final slug = nombre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final ts = DateTime.now().millisecondsSinceEpoch.toString().substring(8);
+      final correo = 'equipo_${slug}_$ts@gol258.com';
+      final contrasena = '123456';
+
+      final usuarioResponse = await supabase.from('usuario').insert({
+        'nombre': nombre,
+        'correo': correo,
+        'contrasena': contrasena,
+      }).select().single();
+      final usuarioId = usuarioResponse['id'];
+
+      final equipoResponse = await supabase.from('equipos').insert(data).select().single();
+      final equipoId = equipoResponse['id'];
+
+      await supabase.from('usuario_equipos').insert({
+        'usuario_id': usuarioId,
+        'equipo_id': equipoId,
+      });
+
       await fetchEquipos();
-      return true;
+      return {'correo': correo, 'contrasena': contrasena};
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      return false;
+      return null;
     }
   }
 

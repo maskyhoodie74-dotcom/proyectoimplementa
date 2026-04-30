@@ -36,15 +36,35 @@ class JugadoresProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> crearJugador(Map<String, dynamic> data) async {
+  Future<Map<String, String>?> crearJugador(Map<String, dynamic> data) async {
     try {
-      await supabase.from('jugadores').insert(data);
+      final nombre = data['nombre_jugador'] as String;
+      final slug = nombre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final ts = DateTime.now().millisecondsSinceEpoch.toString().substring(8);
+      final correo = 'jugador_${slug}_$ts@gol258.com';
+      final contrasena = '123456';
+
+      final usuarioResponse = await supabase.from('usuario').insert({
+        'nombre': nombre,
+        'correo': correo,
+        'contrasena': contrasena,
+      }).select().single();
+      final usuarioId = usuarioResponse['id'];
+
+      final jugadorResponse = await supabase.from('jugadores').insert(data).select().single();
+      final jugadorId = jugadorResponse['id'];
+
+      await supabase.from('usuario_jugadores').insert({
+        'usuario_id': usuarioId,
+        'jugador_id': jugadorId,
+      });
+
       await fetchJugadores();
-      return true;
+      return {'correo': correo, 'contrasena': contrasena};
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      return false;
+      return null;
     }
   }
 

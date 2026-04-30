@@ -16,6 +16,12 @@ class PartidosProvider extends ChangeNotifier {
       .toList()
     ..sort((a, b) => a.fecha.compareTo(b.fecha));
 
+  List<Partido> proximosPartidosDeEquipo(String equipoId) {
+    return proximosPartidos
+        .where((p) => p.equipoLocalId == equipoId || p.equipoVisitanteId == equipoId)
+        .toList();
+  }
+
   List<Partido> get resultados => _partidos
       .where((p) => p.jugado)
       .toList()

@@ -53,7 +53,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final partidos = context.watch<PartidosProvider>();
 
     return Scaffold(
+      backgroundColor: AppColors.maroonDark,
       appBar: AppBar(
+        backgroundColor: AppColors.maroonDark,
+        elevation: 0,
         title: Row(
           children: [
             Container(
@@ -69,74 +72,101 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
             const SizedBox(width: 10),
             Text('COBRAS',
-                style: GoogleFonts.oswald(
+                style: GoogleFonts.inter(
                     color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: AppColors.gold),
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('No hay notificaciones nuevas'),
+                    backgroundColor: AppColors.maroon),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_outlined, color: AppColors.error),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () {
+              context.read<AuthProvider>().logout();
+              context.go('/');
+            },
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('PORTAL DEL COORDINADOR',
-                style: GoogleFonts.inter(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                    letterSpacing: 1.5)),
-            const SizedBox(height: 4),
-            Text('Gestión Deportiva',
-                style: GoogleFonts.oswald(
-                    color: AppColors.textPrimary,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700)),
-            const SizedBox(height: 20),
-            // Action grid
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.4,
-              children: [
-                _actionCard(
-                  icon: Icons.group_add_outlined,
-                  label: '+ Equipo',
-                  onTap: () => context.go('/equipos'),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 800;
+          final contentWidth = isDesktop ? 1000.0 : double.infinity;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: contentWidth),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                padding: EdgeInsets.all(isDesktop ? 32 : 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('PORTAL DEL COORDINADOR',
+                        style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                            letterSpacing: 1.5)),
+                    const SizedBox(height: 4),
+                    Text('Gestión Deportiva',
+                        style: GoogleFonts.inter(
+                            color: AppColors.textPrimary,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 20),
+                    // Action grid
+                    GridView.count(
+                      crossAxisCount: isDesktop ? 4 : 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: isDesktop ? 1.8 : 1.4,
+                      children: [
+                        _actionCard(
+                          icon: Icons.group_add_outlined,
+                          label: '+ Equipo',
+                          onTap: () => context.go('/equipos'),
+                        ),
+                        _actionCard(
+                          icon: Icons.person_add_outlined,
+                          label: '+ Jugador',
+                          onTap: () => context.go('/jugadores'),
+                        ),
+                        _actionCard(
+                          icon: Icons.calendar_month_outlined,
+                          label: 'Jornada',
+                          onTap: () => context.go('/calendario'),
+                        ),
+                        _actionCard(
+                          icon: Icons.bar_chart_outlined,
+                          label: 'Reportes',
+                          onTap: () => context.go('/estadisticas'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    // Resultados en vivo
+                    _buildResultadosEnVivo(partidos),
+                    const SizedBox(height: 24),
+                // Equipos activos
+                _buildEquiposActivos(equipos),
+                const SizedBox(height: 32),
+                  ],
                 ),
-                _actionCard(
-                  icon: Icons.person_add_outlined,
-                  label: '+ Jugador',
-                  onTap: () => context.go('/jugadores'),
-                ),
-                _actionCard(
-                  icon: Icons.calendar_month_outlined,
-                  label: 'Jornada',
-                  onTap: () => context.go('/calendario'),
-                ),
-                _actionCard(
-                  icon: Icons.bar_chart_outlined,
-                  label: 'Reportes',
-                  onTap: () => context.go('/estadisticas'),
-                ),
-              ],
+              ),
             ),
-            const SizedBox(height: 24),
-            // Resultados en vivo
-            _buildResultadosEnVivo(partidos),
-            const SizedBox(height: 24),
-            // Equipos activos
-            _buildEquiposActivos(equipos),
-            const SizedBox(height: 32),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -166,7 +196,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
             const SizedBox(height: 10),
             Text(label,
-                style: GoogleFonts.oswald(
+                style: GoogleFonts.inter(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     letterSpacing: 0.5)),
@@ -200,7 +230,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
               const SizedBox(width: 8),
               Text('RESULTADOS EN VIVO',
-                  style: GoogleFonts.oswald(
+                  style: GoogleFonts.inter(
                       color: AppColors.gold,
                       fontSize: 14,
                       letterSpacing: 1.5,
@@ -263,7 +293,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(':',
-                    style: GoogleFonts.oswald(
+                    style: GoogleFonts.inter(
                         color: AppColors.gold,
                         fontSize: 32,
                         fontWeight: FontWeight.w700)),
@@ -342,7 +372,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           child: Center(
             child: Text(
               value.toString(),
-              style: GoogleFonts.oswald(
+              style: GoogleFonts.inter(
                   color: AppColors.textPrimary,
                   fontSize: 28,
                   fontWeight: FontWeight.w700),
@@ -367,7 +397,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('EQUIPOS ACTIVOS',
-                style: GoogleFonts.oswald(
+                style: GoogleFonts.inter(
                     color: AppColors.textPrimary,
                     fontSize: 16,
                     letterSpacing: 1.5)),
@@ -441,7 +471,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         builder: (ctx) => AlertDialog(
                           backgroundColor: AppColors.bgCard,
                           title: Text('Eliminar equipo',
-                              style: GoogleFonts.oswald(
+                              style: GoogleFonts.inter(
                                   color: AppColors.textPrimary)),
                           content: Text('¿Estás seguro?',
                               style: GoogleFonts.inter(
@@ -479,7 +509,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   borderRadius: BorderRadius.circular(12)),
             ),
             child: Text('VER TODOS LOS EQUIPOS',
-                style: GoogleFonts.oswald(
+                style: GoogleFonts.inter(
                     color: AppColors.textSecondary,
                     fontSize: 13,
                     letterSpacing: 1.5)),

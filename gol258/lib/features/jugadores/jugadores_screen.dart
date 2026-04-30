@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../jugadores/jugadores_provider.dart';
@@ -38,8 +39,12 @@ class _JugadoresScreenState extends State<JugadoresScreen> {
     final isAdmin = context.watch<AuthProvider>().isAdmin;
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.gold, size: 20),
+          onPressed: () => context.go('/admin'),
+        ),
         title: Text('JUGADORES',
-            style: GoogleFonts.oswald(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
+            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
         actions: [
           if (isAdmin)
             IconButton(
@@ -52,87 +57,92 @@ class _JugadoresScreenState extends State<JugadoresScreen> {
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
           : jugadores.jugadores.isEmpty
               ? Center(child: Text('Sin jugadores registrados',
-                  style: GoogleFonts.oswald(color: AppColors.textSecondary, fontSize: 18)))
+                  style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 18)))
               : RefreshIndicator(
                   color: AppColors.gold,
                   backgroundColor: AppColors.bgCard,
                   onRefresh: () => jugadores.fetchJugadores(),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: jugadores.jugadores.length,
-                    itemBuilder: (_, i) {
-                      final j = jugadores.jugadores[i];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.bgCard,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.divider),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          leading: Container(
-                            width: 44, height: 44,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 800),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: jugadores.jugadores.length,
+                        itemBuilder: (_, i) {
+                          final j = jugadores.jugadores[i];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
                             decoration: BoxDecoration(
-                              color: AppColors.maroonDark,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.gold.withOpacity(0.4)),
+                              color: AppColors.bgCard,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.divider),
                             ),
-                            child: Center(
-                              child: Text('#${j.numero}',
-                                  style: GoogleFonts.oswald(
-                                      color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.w700)),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              leading: Container(
+                                width: 44, height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.maroonDark,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: AppColors.gold.withOpacity(0.4)),
+                                ),
+                                child: Center(
+                                  child: Text('#${j.numero}',
+                                      style: GoogleFonts.inter(
+                                          color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.w700)),
+                                ),
+                              ),
+                              title: Text(j.nombre,
+                                  style: GoogleFonts.inter(
+                                      color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+                              subtitle: Text(
+                                '${j.equipoNombre ?? "Sin equipo"} • ${j.posicion ?? "Jugador"}\n⚽ ${j.goles} goles  🎯 ${j.asistencias} asist.',
+                                style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 11, height: 1.5),
+                              ),
+                              isThreeLine: true,
+                              trailing: isAdmin
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.edit_outlined,
+                                              color: AppColors.textSecondary, size: 18),
+                                          onPressed: () => _showForm(jugador: j),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline,
+                                              color: AppColors.error, size: 18),
+                                          onPressed: () async {
+                                            final ok = await showDialog<bool>(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                backgroundColor: AppColors.bgCard,
+                                                title: Text('Eliminar jugador',
+                                                    style: GoogleFonts.inter(color: AppColors.textPrimary)),
+                                                content: Text('¿Eliminar "${j.nombre}"?',
+                                                    style: GoogleFonts.inter(color: AppColors.textSecondary)),
+                                                actions: [
+                                                  TextButton(onPressed: () => Navigator.pop(ctx, false),
+                                                      child: const Text('Cancelar')),
+                                                  TextButton(onPressed: () => Navigator.pop(ctx, true),
+                                                      child: const Text('Eliminar',
+                                                          style: TextStyle(color: AppColors.error))),
+                                                ],
+                                              ),
+                                            );
+                                            if (ok == true && mounted) {
+                                              await context.read<JugadoresProvider>().eliminarJugador(j.id);
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  : null,
                             ),
-                          ),
-                          title: Text(j.nombre,
-                              style: GoogleFonts.inter(
-                                  color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
-                          subtitle: Text(
-                            '${j.equipoNombre ?? "Sin equipo"} • ${j.posicion ?? "Jugador"}\n⚽ ${j.goles} goles  🎯 ${j.asistencias} asist.',
-                            style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 11, height: 1.5),
-                          ),
-                          isThreeLine: true,
-                          trailing: isAdmin
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit_outlined,
-                                          color: AppColors.textSecondary, size: 18),
-                                      onPressed: () => _showForm(jugador: j),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline,
-                                          color: AppColors.error, size: 18),
-                                      onPressed: () async {
-                                        final ok = await showDialog<bool>(
-                                          context: context,
-                                          builder: (ctx) => AlertDialog(
-                                            backgroundColor: AppColors.bgCard,
-                                            title: Text('Eliminar jugador',
-                                                style: GoogleFonts.oswald(color: AppColors.textPrimary)),
-                                            content: Text('¿Eliminar "${j.nombre}"?',
-                                                style: GoogleFonts.inter(color: AppColors.textSecondary)),
-                                            actions: [
-                                              TextButton(onPressed: () => Navigator.pop(ctx, false),
-                                                  child: const Text('Cancelar')),
-                                              TextButton(onPressed: () => Navigator.pop(ctx, true),
-                                                  child: const Text('Eliminar',
-                                                      style: TextStyle(color: AppColors.error))),
-                                            ],
-                                          ),
-                                        );
-                                        if (ok == true && mounted) {
-                                          await context.read<JugadoresProvider>().eliminarJugador(j.id);
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                )
-                              : null,
-                        ),
-                      );
-                    },
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
     );
@@ -181,13 +191,27 @@ class _JugadorFormSheetState extends State<_JugadorFormSheet> {
       'equipo_id': _equipoId,
       'posicion': _posicion,
     };
-    bool ok;
+    
     if (widget.jugador != null) {
-      ok = await context.read<JugadoresProvider>().editarJugador(widget.jugador!.id, data);
+      final ok = await context.read<JugadoresProvider>().editarJugador(widget.jugador!.id, data);
+      if (ok && mounted) Navigator.pop(context);
     } else {
-      ok = await context.read<JugadoresProvider>().crearJugador(data);
+      final creds = await context.read<JugadoresProvider>().crearJugador(data);
+      if (creds != null && mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.bgCard,
+            title: Text('CUENTA DE JUGADOR CREADA', style: GoogleFonts.inter(color: AppColors.gold)),
+            content: Text('Por favor, comparte estos accesos con el jugador:\n\nUsuario: ${creds['correo']}\nClave: ${creds['contrasena']}', style: GoogleFonts.inter(color: AppColors.textPrimary)),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('ENTENDIDO', style: TextStyle(color: AppColors.gold))),
+            ],
+          ),
+        );
+      }
     }
-    if (ok && mounted) Navigator.pop(context);
     if (mounted) setState(() => _saving = false);
   }
 
@@ -212,7 +236,7 @@ class _JugadorFormSheetState extends State<_JugadorFormSheet> {
                 decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 20),
             Text(widget.jugador != null ? 'EDITAR JUGADOR' : 'REGISTRAR JUGADOR',
-                style: GoogleFonts.oswald(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
+                style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
             const SizedBox(height: 20),
             Text('NOMBRE', style: GoogleFonts.inter(color: AppColors.gold, fontSize: 11, letterSpacing: 1.5, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
@@ -281,7 +305,7 @@ class _JugadorFormSheetState extends State<_JugadorFormSheet> {
                       side: const BorderSide(color: AppColors.maroon),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: Text('CANCELAR', style: GoogleFonts.oswald(color: AppColors.textPrimary, letterSpacing: 1.5)),
+                  child: Text('CANCELAR', style: GoogleFonts.inter(color: AppColors.textPrimary, letterSpacing: 1.5)),
                 )),
           ],
         ),
