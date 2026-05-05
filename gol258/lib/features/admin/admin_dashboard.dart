@@ -79,13 +79,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: AppColors.gold),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('No hay notificaciones nuevas'),
-                    backgroundColor: AppColors.maroon),
-              );
-            },
+            onPressed: () => _showNotifications(context),
           ),
           IconButton(
             icon: const Icon(Icons.logout_outlined, color: AppColors.error),
@@ -167,6 +161,47 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showNotifications(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        title: Row(
+          children: [
+            const Icon(Icons.notifications_active, color: AppColors.gold),
+            const SizedBox(width: 8),
+            Text('Notificaciones Admin', style: GoogleFonts.inter(color: AppColors.textPrimary)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.info_outline, color: AppColors.gold),
+              title: Text('Bienvenido al panel', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14)),
+              subtitle: Text('Aquí puedes gestionar toda la liga.', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12)),
+            ),
+            const Divider(color: AppColors.divider),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.warning_amber_rounded, color: AppColors.maroon),
+              title: Text('Equipos sin entrenador', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14)),
+              subtitle: Text('Revisa los equipos registrados.', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cerrar', style: TextStyle(color: AppColors.gold)),
+          ),
+        ],
       ),
     );
   }

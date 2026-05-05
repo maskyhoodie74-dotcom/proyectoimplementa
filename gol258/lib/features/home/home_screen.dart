@@ -63,13 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.notifications_outlined,
                 color: AppColors.gold),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('No hay notificaciones nuevas'),
-                    backgroundColor: AppColors.maroon),
-              );
-            },
+            onPressed: () => _showNotifications(context),
           ),
         ],
       ),
@@ -141,13 +135,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: CircularProgressIndicator(color: AppColors.gold),
                       ),
                     )
-                  else if (_filterPartidos(partidos.proximosPartidos).isEmpty)
+                  else if (_filterPartidos(partidos.proximosPartidos, auth).isEmpty)
                     _buildEmptyState('No hay partidos programados')
                   else
                     Wrap(
                       spacing: 16,
                       runSpacing: 16,
-                      children: _filterPartidos(partidos.proximosPartidos).take(isDesktop ? 6 : 3).map(
+                      children: _filterPartidos(partidos.proximosPartidos, auth).take(isDesktop ? 6 : 3).map(
                             (p) => SizedBox(
                               width: cardWidth,
                               child: MatchCard(partido: p, showDetails: true),
@@ -161,13 +155,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     onSeeAll: () => context.go('/resultados'),
                   ),
                   const SizedBox(height: 12),
-                  if (_filterPartidos(partidos.resultados).isEmpty)
+                  if (_filterPartidos(partidos.resultados, auth).isEmpty)
                     _buildEmptyState('Sin resultados todavía')
                   else
                     Wrap(
                       spacing: 16,
                       runSpacing: 16,
-                      children: _filterPartidos(partidos.resultados).take(isDesktop ? 6 : 3).map(
+                      children: _filterPartidos(partidos.resultados, auth).take(isDesktop ? 6 : 3).map(
                             (p) => SizedBox(
                               width: cardWidth,
                               child: MatchCard(partido: p, showScore: true),
@@ -186,9 +180,62 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<Partido> _filterPartidos(List<Partido> source) {
-    if (_searchQuery.isEmpty) return source;
-    return source.where((p) {
+  void _showNotifications(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        title: Row(
+          children: [
+            const Icon(Icons.notifications_active, color: AppColors.gold),
+            const SizedBox(width: 8),
+            Text('Notificaciones', style: GoogleFonts.inter(color: AppColors.textPrimary)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.info_outline, color: AppColors.gold),
+              title: Text('Bienvenido al sistema GOL 258', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14)),
+              subtitle: Text('Revisa el calendario para ver los próximos partidos.', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12)),
+            ),
+            const Divider(color: AppColors.divider),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.sports_soccer, color: AppColors.maroon),
+              title: Text('Nueva Temporada Iniciada', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14)),
+              subtitle: Text('¡Que gane el mejor!', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cerrar', style: TextStyle(color: AppColors.gold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Partido> _filterPartidos(List<Partido> source, AuthProvider auth) {
+    List<Partido> filtered = source;
+
+    if (_selectedFilterIndex == 1 && auth.equipoId != null) {
+      // LOCALES
+      filtered = filtered.where((p) => p.equipoLocalId == auth.equipoId || p.equipoVisitanteId == auth.equipoId).toList();
+    } else if (_selectedFilterIndex == 2) {
+      // TOP (Partidos de División I o finales, simulado mostrando solo algunos)
+      filtered = filtered.where((p) => p.categoria == 'División I').toList();
+      if (filtered.isEmpty) filtered = source; // Fallback
+    }
+
+    if (_searchQuery.isEmpty) return filtered;
+    
+    return filtered.where((p) {
       final loc = p.equipoLocalNombre?.toLowerCase() ?? '';
       final vis = p.equipoVisitanteNombre?.toLowerCase() ?? '';
       final lug = p.lugar?.toLowerCase() ?? '';

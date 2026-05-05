@@ -298,31 +298,38 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ],
           const SizedBox(height: 20),
-          SizedBox(
+          Container(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: auth.loading ? null : _login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.maroonDark,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            decoration: BoxDecoration(
+              gradient: auth.loading ? null : AppColors.goldGradient,
+              color: auth.loading ? AppColors.bgCardLight : null,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: auth.loading ? null : AppColors.goldGlow,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onPressed: auth.loading ? null : _login,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: auth.loading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                                color: AppColors.gold, strokeWidth: 2))
+                        : Text('AUTENTICAR',
+                            style: GoogleFonts.inter(
+                              color: AppColors.bgDark,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.5,
+                            )),
+                  ),
                 ),
               ),
-              child: auth.loading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                          color: AppColors.textPrimary, strokeWidth: 2))
-                  : Text('AUTENTICAR',
-                      style: GoogleFonts.inter(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1,
-                      )),
             ),
           ),
         ],
@@ -333,27 +340,38 @@ class _LoginScreenState extends State<LoginScreen>
 }
 
   Widget _buildEspectadorButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: _enterAsEspectador,
-        icon: const Icon(Icons.remove_red_eye_outlined,
-            color: AppColors.textPrimary, size: 18),
-        label: Text(
-          'ENTRAR COMO ESPECTADOR',
-          style: GoogleFonts.inter(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.maroonDark,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCardLight.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onPressed: _enterAsEspectador,
+          splashColor: AppColors.gold.withOpacity(0.2),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.remove_red_eye_outlined,
+                    color: AppColors.gold, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'ENTRAR COMO ESPECTADOR',
+                  style: GoogleFonts.inter(
+                    color: AppColors.gold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
