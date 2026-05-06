@@ -34,39 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final partidos = context.watch<PartidosProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.maroonDark,
-                border: Border.all(color: AppColors.gold, width: 1.5),
-              ),
-              child: const Center(
-                  child: Text('⚽', style: TextStyle(fontSize: 16))),
-            ),
-            const SizedBox(width: 10),
-            Text('COBRAS',
-                style: GoogleFonts.inter(
-                    color: AppColors.gold,
-                    fontSize: 20,
-                    letterSpacing: 1,
-                    fontWeight: FontWeight.w800)),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined,
-                color: AppColors.gold),
-            onPressed: () => _showNotifications(context),
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         color: AppColors.gold,
         backgroundColor: AppColors.bgCard,
@@ -180,46 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showNotifications(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
-        title: Row(
-          children: [
-            const Icon(Icons.notifications_active, color: AppColors.gold),
-            const SizedBox(width: 8),
-            Text('Notificaciones', style: GoogleFonts.inter(color: AppColors.textPrimary)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.info_outline, color: AppColors.gold),
-              title: Text('Bienvenido al sistema GOL 258', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14)),
-              subtitle: Text('Revisa el calendario para ver los próximos partidos.', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12)),
-            ),
-            const Divider(color: AppColors.divider),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.sports_soccer, color: AppColors.maroon),
-              title: Text('Nueva Temporada Iniciada', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14)),
-              subtitle: Text('¡Que gane el mejor!', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12)),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cerrar', style: TextStyle(color: AppColors.gold)),
-          ),
-        ],
-      ),
-    );
-  }
 
   List<Partido> _filterPartidos(List<Partido> source, AuthProvider auth) {
     List<Partido> filtered = source;

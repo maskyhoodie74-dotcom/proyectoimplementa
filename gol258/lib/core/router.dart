@@ -6,6 +6,7 @@ import '../features/home/home_screen.dart';
 import '../features/admin/admin_dashboard.dart';
 import '../features/equipos/equipos_screen.dart';
 import '../features/jugadores/jugadores_screen.dart';
+import '../features/jugadores/jugador_dashboard.dart';
 import '../features/calendario/calendario_screen.dart';
 import '../features/resultados/resultados_screen.dart';
 import '../features/posiciones/posiciones_screen.dart';
@@ -23,7 +24,12 @@ GoRouter createRouter(AuthProvider auth) {
       final loggedIn = auth.isLoggedIn;
       final onLogin = state.matchedLocation == '/';
       if (!loggedIn && !onLogin) return '/';
-      if (loggedIn && onLogin) return '/home';
+      if (loggedIn && onLogin) {
+        // If admin, go to admin dashboard; if jugador with jugador_id, go to jugador dashboard
+        if (auth.isAdmin) return '/admin';
+        if (auth.jugadorId != null) return '/jugador-dashboard';
+        return '/home';
+      }
       return null;
     },
     refreshListenable: auth,
@@ -31,6 +37,11 @@ GoRouter createRouter(AuthProvider auth) {
       GoRoute(
         path: '/',
         builder: (_, __) => const LoginScreen(),
+      ),
+      // Jugador dashboard (outside shell - has its own AppBar with tabs)
+      GoRoute(
+        path: '/jugador-dashboard',
+        builder: (_, __) => const JugadorDashboard(),
       ),
       ShellRoute(
         navigatorKey: _shellKey,

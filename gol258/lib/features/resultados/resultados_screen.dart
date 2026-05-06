@@ -1,8 +1,4 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../partidos/partidos_provider.dart';
 import '../../core/theme.dart';
@@ -27,16 +23,6 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
     final resultados = partidos.resultados;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.gold, size: 20),
-          onPressed: () => context.go('/home'),
-        ),
-        title: Text('RESULTADOS',
-            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 1)),
-      ),
       body: partidos.loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
           : resultados.isEmpty

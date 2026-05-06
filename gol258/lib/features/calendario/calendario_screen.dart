@@ -52,19 +52,15 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     final selectedEvents = _selectedDay != null ? _getEventsForDay(_selectedDay!, todos) : <Partido>[];
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        title: Text('CALENDARIO',
-            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
-        actions: [
-          if (isAdmin)
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline, color: AppColors.gold),
+      floatingActionButton: isAdmin
+          ? FloatingActionButton(
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.bgDark,
+              tooltip: 'Programar Partido',
               onPressed: _showPartidoForm,
-            ),
-        ],
-      ),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: partidos.loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
           : RefreshIndicator(

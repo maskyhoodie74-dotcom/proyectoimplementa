@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../equipos/equipos_provider.dart';
@@ -34,21 +33,15 @@ class _EquiposScreenState extends State<EquiposScreen> {
     final equipos = context.watch<EquiposProvider>();
     final isAdmin = context.watch<AuthProvider>().isAdmin;
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.gold, size: 20),
-          onPressed: () => context.go('/admin'),
-        ),
-        title: Text('EQUIPOS',
-            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 20, letterSpacing: 2)),
-        actions: [
-          if (isAdmin)
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline, color: AppColors.gold),
+      floatingActionButton: isAdmin
+          ? FloatingActionButton(
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.bgDark,
+              tooltip: 'Agregar Equipo',
               onPressed: () => _showForm(),
-            ),
-        ],
-      ),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: equipos.loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
           : equipos.equipos.isEmpty
