@@ -75,6 +75,27 @@ class PartidosProvider extends ChangeNotifier {
     }
   }
 
+  /// Edita cualquier campo de un partido (marcador, fecha, hora, lugar, etc.)
+  Future<bool> editarPartido(String id, Map<String, dynamic> data) async {
+    try {
+      await supabase.from('calendario').update(data).eq('id', id);
+      await fetchPartidos();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Registra el resultado y devuelve true. La lógica de actualizar
+  /// los goles de cada jugador se maneja desde el UI (Admin Dashboard)
+  /// usando JugadoresProvider.sumarGoles para mayor claridad.
+  Future<bool> registrarResultadoConAnotadores(
+      String id, int golesLocal, int golesVisitante) async {
+    return registrarResultado(id, golesLocal, golesVisitante);
+  }
+
   Future<bool> eliminarPartido(String id) async {
     try {
       await supabase.from('calendario').delete().eq('id', id);
