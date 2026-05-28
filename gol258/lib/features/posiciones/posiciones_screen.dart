@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../partidos/partidos_provider.dart';
 import '../jugadores/jugadores_provider.dart';
 import '../equipos/equipos_provider.dart';
 import '../../core/theme.dart';
+import '../../widgets/liguilla_bracket.dart';
+import '../../widgets/ia_insight_card.dart';
+import '../ia/ia_chat_screen.dart';
+import '../liguilla/liguilla_provider.dart';
 
 class PosicionesScreen extends StatefulWidget {
   const PosicionesScreen({super.key});
@@ -20,7 +25,7 @@ class _PosicionesScreenState extends State<PosicionesScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     Future.microtask(() {
       if (!mounted) return;
       context.read<PartidosProvider>().fetchPartidos();
@@ -43,6 +48,7 @@ class _PosicionesScreenState extends State<PosicionesScreen>
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
+      floatingActionButton: _buildIaFab(),
       body: Column(
         children: [
           // Premium header with gradient
@@ -131,6 +137,7 @@ class _PosicionesScreenState extends State<PosicionesScreen>
                         fontSize: 13, fontWeight: FontWeight.w500),
                     tabs: const [
                       Tab(text: 'POSICIONES'),
+                      Tab(text: 'LIGUILLA'),
                       Tab(text: 'GOLEADORES'),
                     ],
                   ),
@@ -144,6 +151,7 @@ class _PosicionesScreenState extends State<PosicionesScreen>
               controller: _tabController,
               children: [
                 _buildPosicionesTab(partidos, equiposP),
+                _buildLiguillaTab(),
                 _buildGoleadoresTab(jugadoresP),
               ],
             ),
@@ -161,8 +169,10 @@ class _PosicionesScreenState extends State<PosicionesScreen>
       color: AppColors.gold,
       backgroundColor: AppColors.bgCard,
       onRefresh: () async {
-        await context.read<PartidosProvider>().fetchPartidos();
-        await context.read<EquiposProvider>().fetchEquipos();
+        final partidosProvider = context.read<PartidosProvider>();
+        final equiposProvider = context.read<EquiposProvider>();
+        await partidosProvider.fetchPartidos();
+        await equiposProvider.fetchEquipos();
       },
       child: LayoutBuilder(builder: (context, constraints) {
         final isDesktop = constraints.maxWidth > 800;
@@ -193,6 +203,24 @@ class _PosicionesScreenState extends State<PosicionesScreen>
                     }),
                   const SizedBox(height: 16),
                   _buildLegend(),
+                  const SizedBox(height: 16),
+                  // ── Tarjeta de Análisis IA ──
+                  if (tablaConTendencia.isNotEmpty)
+                    IaInsightCard(
+                      tablaData: tablaConTendencia.map((e) {
+                        final s = e['stats'] as Map<String, dynamic>;
+                        return {
+                          'nombre': e['nombre'] as String,
+                          'PJ': s['PJ'] ?? 0,
+                          'PG': s['PG'] ?? 0,
+                          'PE': s['PE'] ?? 0,
+                          'PP': s['PP'] ?? 0,
+                          'GF': s['GF'] ?? 0,
+                          'GC': s['GC'] ?? 0,
+                          'Pts': s['Pts'] ?? 0,
+                        };
+                      }).toList(),
+                    ),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -455,6 +483,261 @@ class _PosicionesScreenState extends State<PosicionesScreen>
     );
   }
 
+  // ─────────────── LIGUILLA ───────────────
+  Widget _buildLiguillaTab() {
+    final liguillaP = context.watch<LiguillaProvider>();
+    final torneo = liguillaP.torneoActivo;
+    final equiposClasificados = liguillaP.equipos;
+    final partidosLiguilla = liguillaP.partidos;
+
+    return RefreshIndicator(
+      color: AppColors.gold,
+      backgroundColor: AppColors.bgCard,
+      onRefresh: () => liguillaP.fetchTorneoActivo(),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth > 800;
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: isDesktop ? 1100.0 : double.infinity),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics()),
+              padding: EdgeInsets.all(isDesktop ? 28 : 16),
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2D1A08), Color(0xFF1C1C1E)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: AppColors.gold.withOpacity(0.3), width: 0.5),
+                      boxShadow: AppColors.cardShadow,
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                gradient: AppColors.maroonGradient,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: AppColors.gold.withOpacity(0.4),
+                                    width: 0.5),
+                              ),
+                              child: const Icon(CupertinoIcons.flag_fill,
+                                  color: AppColors.gold, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ShaderMask(
+                                  shaderCallback: (bounds) =>
+                                      AppColors.goldGradient
+                                          .createShader(bounds),
+                                  child: Text(
+                                    'LIGUILLA',
+                                    style: GoogleFonts.inter(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 3,
+                                    ),
+                                  ),
+                                ),
+                                  Text(
+                                    torneo == null
+                                        ? 'Sin torneo activo'
+                                        : '${torneo.nombre} • Eliminación directa • ${torneo.numEquipos} clasificados',
+                                    style: GoogleFonts.inter(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          if (torneo != null) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.bgCardLight.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                    color: AppColors.divider, width: 0.5),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(CupertinoIcons.info_circle,
+                                      color: AppColors.textTertiary, size: 13),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'El bracket se genera y gestiona automáticamente. '
+                                      'Avanza el ganador de cada llave.',
+                                      style: GoogleFonts.inter(
+                                        color: AppColors.textTertiary,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    if (liguillaP.loading)
+                      const Padding(
+                        padding: EdgeInsets.all(48),
+                        child: CircularProgressIndicator(color: AppColors.gold),
+                      )
+                    else if (torneo == null)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(48),
+                          child: Column(
+                            children: [
+                              const Icon(CupertinoIcons.calendar_badge_minus, color: AppColors.textTertiary, size: 48),
+                              const SizedBox(height: 16),
+                              Text('No hay un torneo de liguilla activo', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      LiguillaBracketWidget(
+                        partidos: partidosLiguilla,
+                        torneo: torneo,
+                      ),
+
+                  const SizedBox(height: 16),
+
+                  // Classified teams list
+                  if (torneo != null && equiposClasificados.isNotEmpty) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCard,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: AppColors.divider, width: 0.5),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(CupertinoIcons.checkmark_seal_fill,
+                                  color: AppColors.gold, size: 14),
+                              const SizedBox(width: 6),
+                              Text(
+                                'EQUIPOS CLASIFICADOS',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.gold,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: equiposClasificados
+                                .map((e) => _buildClassifiedChip(e.seed, e.nombreEquipo ?? 'Desc'))
+                                .toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildClassifiedChip(int seed, String nombre) {
+    final isTop = seed <= 4;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: isTop
+            ? const LinearGradient(
+                colors: [Color(0xFF2D1A08), Color(0xFF1C1C1E)],
+              )
+            : null,
+        color: isTop ? null : AppColors.bgCardLight,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isTop
+              ? AppColors.gold.withValues(alpha: 0.4)
+              : AppColors.divider,
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: isTop
+                  ? AppColors.gold.withValues(alpha: 0.15)
+                  : AppColors.bgCard,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Center(
+              child: Text(
+                '$seed',
+                style: GoogleFonts.inter(
+                  color: isTop ? AppColors.gold : AppColors.textTertiary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            nombre,
+            style: GoogleFonts.inter(
+              color: isTop ? AppColors.gold : AppColors.textSecondary,
+              fontSize: 11,
+              fontWeight: isTop ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─────────────── GOLEADORES ───────────────
   Widget _buildGoleadoresTab(JugadoresProvider jugadoresP) {
     final goleadores = jugadoresP.topGoleadores;
@@ -520,7 +803,6 @@ class _PosicionesScreenState extends State<PosicionesScreen>
   Widget _buildGoleadorRow(int pos, dynamic jugador) {
     final isTop3 = pos <= 3;
     final isFirst = pos == 1;
-    final maxGoles = jugador.goles > 0 ? jugador.goles : 1;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
@@ -657,4 +939,65 @@ class _PosicionesScreenState extends State<PosicionesScreen>
 
   TextStyle _cStyle() =>
       GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13);
+
+  // ─────────────── FAB ASISTENTE IA ───────────────
+  Widget _buildIaFab() {
+    return FloatingActionButton.extended(
+      onPressed: () {
+        HapticFeedback.mediumImpact();
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (_, animation, __) => const IaChatScreen(),
+            transitionsBuilder: (_, anim, __, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: anim,
+                  curve: Curves.easeOutCubic,
+                )),
+                child: child,
+              );
+            },
+          ),
+        );
+      },
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      label: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: AppColors.maroonGradient,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: AppColors.gold.withValues(alpha: 0.5),
+            width: 0.8,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.maroon.withValues(alpha: 0.5),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🤖', style: TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text(
+              'Asistente IA',
+              style: GoogleFonts.inter(
+                color: AppColors.gold,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

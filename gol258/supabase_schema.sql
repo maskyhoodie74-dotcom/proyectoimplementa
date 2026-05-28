@@ -114,6 +114,51 @@ CREATE TABLE IF NOT EXISTS public.usuario_equipos (
   PRIMARY KEY (usuario_id, equipo_id)
 );
 
+
+-- ============================================================
+-- LIGUILLA INDEPENDIENTE
+-- Tablas exclusivas para gestionar el torneo de eliminatorias
+-- ============================================================
+
+-- 1. Torneo de liguilla
+CREATE TABLE IF NOT EXISTS public.liguilla_torneos (
+  id          BIGSERIAL PRIMARY KEY,
+  nombre      TEXT NOT NULL DEFAULT 'Liguilla 2025',
+  estado      TEXT DEFAULT 'activo', -- activo | finalizado
+  num_equipos INT DEFAULT 4,         -- 2, 4, 8, 16
+  admin_id    BIGINT REFERENCES public.admin(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Equipos clasificados en un torneo
+CREATE TABLE IF NOT EXISTS public.liguilla_equipos (
+  id          BIGSERIAL PRIMARY KEY,
+  torneo_id   BIGINT REFERENCES public.liguilla_torneos(id) ON DELETE CASCADE,
+  equipo_id   BIGINT REFERENCES public.equipos(id) ON DELETE CASCADE,
+  seed        INT NOT NULL, -- posición (1 = superlíder)
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(torneo_id, seed),
+  UNIQUE(torneo_id, equipo_id)
+);
+
+-- 3. Partidos del bracket
+CREATE TABLE IF NOT EXISTS public.liguilla_partidos (
+  id                  BIGSERIAL PRIMARY KEY,
+  torneo_id           BIGINT REFERENCES public.liguilla_torneos(id) ON DELETE CASCADE,
+  ronda               TEXT NOT NULL, -- final, semis, cuartos, octavos
+  numero_partido      INT NOT NULL,  -- 1, 2, 3... (orden vertical en UI)
+  equipo_local_id     BIGINT REFERENCES public.equipos(id) ON DELETE CASCADE,
+  equipo_visitante_id BIGINT REFERENCES public.equipos(id) ON DELETE CASCADE,
+  fecha               DATE,
+  hora                TEXT DEFAULT '12:00',
+  lugar               TEXT,
+  goles_local         INT,
+  goles_visitante     INT,
+  jugado              BOOLEAN DEFAULT FALSE,
+  estado              TEXT DEFAULT 'programado',
+  created_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- -------------------------------------------------------
 -- ROW LEVEL SECURITY
 -- -------------------------------------------------------
@@ -144,6 +189,19 @@ CREATE POLICY "Lectura admin para login" ON public.admin FOR SELECT USING (true)
 ALTER TABLE public.usuario ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Usuarios pueden leer su propio perfil" ON public.usuario FOR SELECT USING (true);
 CREATE POLICY "Registro público de usuarios" ON public.usuario FOR INSERT WITH CHECK (true);
+
+-- Liguilla: lectura publica, admin escribe
+ALTER TABLE public.liguilla_torneos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Lectura pública torneos" ON public.liguilla_torneos FOR SELECT USING (true);
+CREATE POLICY "Admin gestiona torneos" ON public.liguilla_torneos FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.liguilla_equipos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Lectura pública liguilla_equipos" ON public.liguilla_equipos FOR SELECT USING (true);
+CREATE POLICY "Admin gestiona liguilla_equipos" ON public.liguilla_equipos FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.liguilla_partidos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Lectura pública liguilla_partidos" ON public.liguilla_partidos FOR SELECT USING (true);
+CREATE POLICY "Admin gestiona liguilla_partidos" ON public.liguilla_partidos FOR ALL USING (true) WITH CHECK (true);
 
 -- -------------------------------------------------------
 -- DATOS DE EJEMPLO

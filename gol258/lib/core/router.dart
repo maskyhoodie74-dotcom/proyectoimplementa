@@ -11,6 +11,7 @@ import '../features/calendario/calendario_screen.dart';
 import '../features/resultados/resultados_screen.dart';
 import '../features/posiciones/posiciones_screen.dart';
 import '../features/estadisticas/estadisticas_screen.dart';
+import '../features/liguilla/admin_liguilla_screen.dart';
 import '../widgets/main_shell.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
@@ -55,6 +56,7 @@ GoRouter createRouter(AuthProvider auth) {
           GoRoute(path: '/resultados', builder: (c, s) => const ResultadosScreen()),
           GoRoute(path: '/estadisticas', builder: (c, s) => const EstadisticasScreen()),
           GoRoute(path: '/admin', builder: (c, s) => const AdminDashboard()),
+          GoRoute(path: '/admin-liguilla', builder: (c, s) => const AdminLiguillaScreen()),
         ],
       ),
     ],

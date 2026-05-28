@@ -154,6 +154,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           label: 'Reportes',
                           onTap: () => context.go('/estadisticas'),
                         ),
+                        _actionCard(
+                          icon: Icons.emoji_events_outlined,
+                          label: 'Liguilla',
+                          onTap: () => context.go('/admin-liguilla'),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
