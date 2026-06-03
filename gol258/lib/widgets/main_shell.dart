@@ -363,16 +363,16 @@ class _SidebarItemState extends State<_SidebarItem> {
           decoration: BoxDecoration(
             gradient: widget.isSelected ? AppColors.maroonGradient : null,
             color: _hovered && !widget.isSelected
-                ? AppColors.bgCard
+                ? AppColors.bgCardLight.withOpacity(0.5)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: widget.isSelected
                 ? Border.all(
-                    color: AppColors.gold.withOpacity(0.3),
-                    width: 0.5,
+                    color: AppColors.gold.withOpacity(0.5),
+                    width: 1.0,
                   )
                 : null,
-            boxShadow: widget.isSelected ? AppColors.cardShadow : null,
+            boxShadow: widget.isSelected ? AppColors.goldGlowSubtle : null,
           ),
           child: Row(
             children: [
@@ -684,7 +684,8 @@ class _IosBottomBar extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.bgCard.withOpacity(0.85),
+            gradient: AppColors.glassGradient,
+            color: AppColors.bgCard.withOpacity(0.7),
             border: const Border(
               top: BorderSide(color: AppColors.divider, width: 0.5),
             ),
@@ -776,14 +777,9 @@ class _BottomBarItemState extends State<_BottomBarItem>
               decoration: widget.isSelected
                   ? BoxDecoration(
                       gradient: AppColors.maroonGradient,
-                      borderRadius: BorderRadius.circular(11),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.maroon.withOpacity(0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.gold.withOpacity(0.4), width: 1.0),
+                      boxShadow: AppColors.goldGlowSubtle,
                     )
                   : null,
               child: Icon(

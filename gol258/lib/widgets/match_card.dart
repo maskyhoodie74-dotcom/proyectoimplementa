@@ -24,6 +24,7 @@ class _MatchCardState extends State<MatchCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _pressCtrl;
   late Animation<double> _scaleAnim;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -51,28 +52,33 @@ class _MatchCardState extends State<MatchCard>
     final visWins = isFinished &&
         (widget.partido.golesVisitante ?? 0) > (widget.partido.golesLocal ?? 0);
 
-    return GestureDetector(
-      onTapDown: (_) => _pressCtrl.forward(),
-      onTapUp: (_) => _pressCtrl.reverse(),
-      onTapCancel: () => _pressCtrl.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnim,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF252220), Color(0xFF1C1C1E)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isFinished
-                  ? AppColors.gold.withOpacity(0.25)
-                  : AppColors.divider,
-              width: 0.5,
-            ),
-            boxShadow: AppColors.cardShadow,
-          ),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: (_) => _pressCtrl.forward(),
+        onTapUp: (_) => _pressCtrl.reverse(),
+        onTapCancel: () => _pressCtrl.reverse(),
+        child: AnimatedScale(
+          scale: _isHovered ? 1.02 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutBack,
+          child: ScaleTransition(
+            scale: _scaleAnim,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                gradient: AppColors.cardGradient,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: _isHovered 
+                      ? AppColors.gold.withOpacity(0.4) 
+                      : (isFinished ? AppColors.gold.withOpacity(0.25) : AppColors.divider),
+                  width: _isHovered ? 1.0 : 0.5,
+                ),
+                boxShadow: _isHovered ? AppColors.glassShadow : AppColors.cardShadow,
+              ),
           child: Column(
             children: [
               // Top status bar
@@ -85,7 +91,7 @@ class _MatchCardState extends State<MatchCard>
           ),
         ),
       ),
-    );
+    )));
   }
 
   Widget _buildStatusBar(bool isFinished) {
@@ -225,7 +231,7 @@ class _MatchCardState extends State<MatchCard>
         ),
         const SizedBox(height: 8),
         SizedBox(
-          width: 90,
+          width: double.infinity,
           child: Text(
             nombre,
             textAlign: alignment == CrossAxisAlignment.start
@@ -266,18 +272,18 @@ class _MatchCardState extends State<MatchCard>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.bgDark,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.gold.withOpacity(0.5), width: 1),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.gold.withOpacity(0.6), width: 1.5),
                     boxShadow: AppColors.goldGlowSubtle,
                   ),
                   child: Text(
                     widget.partido.marcador,
                     style: GoogleFonts.inter(
                       color: AppColors.gold,
-                      fontSize: 28,
+                      fontSize: 30,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2,
                     ),

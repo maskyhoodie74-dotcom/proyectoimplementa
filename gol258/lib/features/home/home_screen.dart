@@ -121,66 +121,118 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildHeroHeader(AuthProvider auth, PartidosProvider partidos) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF1A0610), Color(0xFF0A0005), Color(0xFF000000)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        gradient: AppColors.heroBg,
+        border: Border(
+          bottom: BorderSide(color: AppColors.divider, width: 0.5),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 480;
+          if (isNarrow) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  auth.userName.isNotEmpty
+                      ? 'Hola, ${auth.userName.split(' ').first} 👋'
+                      : 'Liga GOL 258 👋',
+                  style: GoogleFonts.inter(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ShaderMask(
+                  shaderCallback: (bounds) =>
+                      AppColors.goldGradient.createShader(bounds),
+                  child: Text(
+                    'Torneos CBTis 258',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1.0,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
                   children: [
-                    Text(
-                      auth.userName.isNotEmpty
-                          ? 'Hola, ${auth.userName.split(' ').first} 👋'
-                          : 'Liga GOL 258 👋',
-                      style: GoogleFonts.inter(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: _buildMiniStatCard(
+                        '${partidos.proximosPartidos.length}',
+                        'Próximos',
+                        CupertinoIcons.calendar,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    ShaderMask(
-                      shaderCallback: (bounds) =>
-                          AppColors.goldGradient.createShader(bounds),
-                      child: Text(
-                        'Torneos CBTis 258',
-                        style: GoogleFonts.inter(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
-                          height: 1.1,
-                        ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildMiniStatCard(
+                        '${partidos.resultados.length}',
+                        'Jugados',
+                        CupertinoIcons.checkmark_seal_fill,
                       ),
                     ),
                   ],
                 ),
-              ),
-              // Stats mini cards
-              _buildMiniStatCard(
-                '${partidos.proximosPartidos.length}',
-                'Próximos',
-                CupertinoIcons.calendar,
-              ),
-              const SizedBox(width: 8),
-              _buildMiniStatCard(
-                '${partidos.resultados.length}',
-                'Jugados',
-                CupertinoIcons.checkmark_seal_fill,
-              ),
-            ],
-          ),
-        ],
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        auth.userName.isNotEmpty
+                            ? 'Hola, ${auth.userName.split(' ').first} 👋'
+                            : 'Liga GOL 258 👋',
+                        style: GoogleFonts.inter(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      ShaderMask(
+                        shaderCallback: (bounds) =>
+                            AppColors.goldGradient.createShader(bounds),
+                        child: Text(
+                          'Torneos CBTis 258',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1.0,
+                            height: 1.1,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _buildMiniStatCard(
+                  '${partidos.proximosPartidos.length}',
+                  'Próximos',
+                  CupertinoIcons.calendar,
+                ),
+                const SizedBox(width: 8),
+                _buildMiniStatCard(
+                  '${partidos.resultados.length}',
+                  'Jugados',
+                  CupertinoIcons.checkmark_seal_fill,
+                ),
+              ],
+            );
+          }
+        },
       ),
     );
   }
@@ -189,9 +241,17 @@ class _HomeScreenState extends State<HomeScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider, width: 0.5),
+        gradient: AppColors.glassGradient,
+        color: AppColors.bgCardLight.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -226,9 +286,17 @@ class _HomeScreenState extends State<HomeScreen>
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.bgCard.withOpacity(0.8),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.divider, width: 0.5),
+            gradient: AppColors.glassGradient,
+            color: AppColors.bgCard.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.gold.withOpacity(0.2), width: 0.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              )
+            ],
           ),
           child: TextField(
             onChanged: (v) => setState(() => _searchQuery = v),
@@ -270,18 +338,24 @@ class _HomeScreenState extends State<HomeScreen>
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
-                  gradient: isSelected ? AppColors.goldGradient : null,
-                  color: isSelected ? null : AppColors.bgCard,
-                  borderRadius: BorderRadius.circular(20),
+                  gradient: isSelected ? AppColors.goldGradient : AppColors.glassGradient,
+                  color: isSelected ? null : AppColors.bgCardLight.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: isSelected
                         ? AppColors.gold
                         : AppColors.divider,
                     width: isSelected ? 1 : 0.5,
                   ),
-                  boxShadow: isSelected ? AppColors.goldGlowSubtle : null,
+                  boxShadow: isSelected ? AppColors.goldGlowSubtle : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    )
+                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

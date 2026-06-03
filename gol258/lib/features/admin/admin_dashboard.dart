@@ -226,34 +226,60 @@ class _AdminDashboardState extends State<AdminDashboard> {
       {required IconData icon,
       required String label,
       required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isHovered = false;
+        return MouseRegion(
+          onEnter: (_) => setState(() => isHovered = true),
+          onExit: (_) => setState(() => isHovered = false),
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
-                color: AppColors.maroonDark,
-                borderRadius: BorderRadius.circular(12),
+                gradient: isHovered ? AppColors.cardGradient : null,
+                color: isHovered ? null : AppColors.bgCard,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isHovered ? AppColors.gold.withOpacity(0.5) : AppColors.divider,
+                  width: isHovered ? 1.0 : 0.5,
+                ),
+                boxShadow: isHovered ? AppColors.goldGlowSubtle : null,
               ),
-              child: Icon(icon, color: AppColors.gold, size: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: isHovered ? AppColors.maroonGradient : null,
+                      color: isHovered ? null : AppColors.maroonDark,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: isHovered ? [
+                        BoxShadow(
+                          color: AppColors.maroon.withOpacity(0.5),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ] : null,
+                    ),
+                    child: Icon(icon, color: AppColors.gold, size: 24),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(label,
+                      style: GoogleFonts.inter(
+                          color: isHovered ? AppColors.gold : AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: isHovered ? FontWeight.w700 : FontWeight.w500,
+                          letterSpacing: 0.5)),
+                ],
+              ),
             ),
-            const SizedBox(height: 10),
-            Text(label,
-                style: GoogleFonts.inter(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    letterSpacing: 0.5)),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

@@ -34,39 +34,51 @@ class AppColors {
   static const divider = Color(0xFF38383A);
   static const stroke = Color(0xFF48484A);
 
-  // Premium Gradients
+  // Premium Gradients - Mesh style & smoother transitions
   static const LinearGradient goldGradient = LinearGradient(
-    colors: [Color(0xFFEDD45A), Color(0xFFD4AF37), Color(0xFF9C810A)],
+    colors: [Color(0xFFFDE88B), Color(0xFFD4AF37), Color(0xFFB8942A), Color(0xFF9C810A)],
+    stops: [0.0, 0.4, 0.7, 1.0],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient goldGradientVertical = LinearGradient(
-    colors: [Color(0xFFEDD45A), Color(0xFFD4AF37)],
+    colors: [Color(0xFFFDE88B), Color(0xFFD4AF37), Color(0xFFB8942A)],
+    stops: [0.0, 0.6, 1.0],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
   static const LinearGradient goldGradientDark = LinearGradient(
-    colors: [Color(0xFFD4AF37), Color(0xFF9C810A), Color(0xFF4A3810)],
+    colors: [Color(0xFFD4AF37), Color(0xFF8B6C05), Color(0xFF4A3810)],
+    stops: [0.0, 0.5, 1.0],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient maroonGradient = LinearGradient(
-    colors: [Color(0xFF9C2438), Color(0xFF7B1D2D), Color(0xFF4A0E1A)],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    colors: [Color(0xFFBA2B43), Color(0xFF9C2438), Color(0xFF7B1D2D), Color(0xFF4A0E1A)],
+    stops: [0.0, 0.3, 0.7, 1.0],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
 
   static const LinearGradient heroBg = LinearGradient(
-    colors: [Color(0xFF200612), Color(0xFF0D000A), Color(0xFF000000)],
+    colors: [Color(0xFF2A0A19), Color(0xFF15040C), Color(0xFF000000)],
+    stops: [0.0, 0.4, 1.0],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
   static const LinearGradient cardGradient = LinearGradient(
-    colors: [Color(0xFF2C2020), Color(0xFF1C1C1E)],
+    colors: [Color(0xFF332326), Color(0xFF1C1C1E)],
+    stops: [0.0, 1.0],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient glassGradient = LinearGradient(
+    colors: [Color(0x20FFFFFF), Color(0x05FFFFFF)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -74,49 +86,55 @@ class AppColors {
   // Shadows
   static List<BoxShadow> goldGlow = [
     BoxShadow(
-      color: gold.withOpacity(0.4),
-      blurRadius: 20,
-      spreadRadius: 0,
-      offset: const Offset(0, 4),
+      color: gold.withOpacity(0.5),
+      blurRadius: 24,
+      spreadRadius: -2,
+      offset: const Offset(0, 8),
     ),
     BoxShadow(
-      color: gold.withOpacity(0.15),
+      color: gold.withOpacity(0.2),
       blurRadius: 40,
-      spreadRadius: 0,
-      offset: const Offset(0, 8),
+      spreadRadius: 2,
+      offset: const Offset(0, 12),
     ),
   ];
 
   static List<BoxShadow> goldGlowSubtle = [
     BoxShadow(
-      color: gold.withOpacity(0.2),
-      blurRadius: 12,
+      color: gold.withOpacity(0.25),
+      blurRadius: 16,
       spreadRadius: 0,
-      offset: const Offset(0, 2),
+      offset: const Offset(0, 4),
+    ),
+    BoxShadow(
+      color: gold.withOpacity(0.1),
+      blurRadius: 24,
+      spreadRadius: -2,
+      offset: const Offset(0, 8),
     ),
   ];
 
   static List<BoxShadow> cardShadow = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.5),
-      blurRadius: 20,
+      color: Colors.black.withOpacity(0.6),
+      blurRadius: 24,
       spreadRadius: -4,
-      offset: const Offset(0, 8),
+      offset: const Offset(0, 12),
     ),
   ];
 
   static List<BoxShadow> glassShadow = [
     BoxShadow(
       color: Colors.black.withOpacity(0.5),
-      blurRadius: 24,
+      blurRadius: 30,
       spreadRadius: -4,
-      offset: const Offset(0, 12),
+      offset: const Offset(0, 16),
     ),
     BoxShadow(
-      color: gold.withOpacity(0.05),
+      color: gold.withOpacity(0.08),
       blurRadius: 40,
       spreadRadius: 0,
-      offset: const Offset(0, 0),
+      offset: const Offset(0, -2), // subtle top glow
     ),
   ];
 }
@@ -143,16 +161,16 @@ class AppTheme {
       textTheme: TextTheme(
         displayLarge: GoogleFonts.inter(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.w800,
-          fontSize: 34,
-          letterSpacing: -1.0,
+          fontWeight: FontWeight.w900,
+          fontSize: 36,
+          letterSpacing: -1.2,
           height: 1.1,
         ),
         displayMedium: GoogleFonts.inter(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.w700,
-          fontSize: 28,
-          letterSpacing: -0.8,
+          fontWeight: FontWeight.w800,
+          fontSize: 30,
+          letterSpacing: -1.0,
           height: 1.15,
         ),
         titleLarge: GoogleFonts.inter(

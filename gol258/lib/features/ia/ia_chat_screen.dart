@@ -156,7 +156,7 @@ class _IaChatScreenState extends State<IaChatScreen>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Gemini 1.5 Flash · En línea',
+                    'Gemini 2.5 Flash · En línea',
                     style: GoogleFonts.inter(
                       color: AppColors.textTertiary,
                       fontSize: 10,
