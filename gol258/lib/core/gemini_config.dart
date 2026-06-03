@@ -1,5 +1,6 @@
 /// Configuración de la API de Google Generative AI (Gemini)
-const String geminiApiKey = 'AIzaSyAXBdtC9DVCB_NOdB-0-4Y1Os4Vpik_lSU';
+/// Reemplaza 'tu_api_key_aqui' con tu clave real de Gemini
+const String geminiApiKey = 'tu_api_key_aqui';
 
 /// Modelo a utilizar
 const String geminiModel = 'gemini-2.5-flash';
