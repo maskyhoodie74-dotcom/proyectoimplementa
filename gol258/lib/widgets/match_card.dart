@@ -104,31 +104,40 @@ class _MatchCardState extends State<MatchCard>
       ),
       child: Row(
         children: [
-          if (widget.partido.categoria != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-              decoration: BoxDecoration(
-                gradient: AppColors.maroonGradient,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                widget.partido.categoria!.toUpperCase(),
-                style: GoogleFonts.inter(
-                  color: AppColors.gold,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
+          Expanded(
+            child: Row(
+              children: [
+                if (widget.partido.categoria != null) ...[
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.maroonGradient,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        widget.partido.categoria!.toUpperCase(),
+                        style: GoogleFonts.inter(
+                          color: AppColors.gold,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  widget.partido.hora ?? '',
+                  style: GoogleFonts.inter(
+                      color: AppColors.textSecondary, fontSize: 12),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(width: 8),
-          ],
-          Text(
-            widget.partido.hora ?? '',
-            style: GoogleFonts.inter(
-                color: AppColors.textSecondary, fontSize: 12),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(

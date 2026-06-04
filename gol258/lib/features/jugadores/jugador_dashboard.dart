@@ -8,6 +8,8 @@ import '../partidos/partidos_provider.dart';
 import '../jugadores/jugadores_provider.dart';
 import '../equipos/equipos_provider.dart';
 import '../../core/theme.dart';
+import 'package:flutter/services.dart';
+import '../ia/ia_chat_screen.dart';
 
 class JugadorDashboard extends StatefulWidget {
   const JugadorDashboard({super.key});
@@ -52,6 +54,7 @@ class _JugadorDashboardState extends State<JugadorDashboard>
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
+      floatingActionButton: _buildIaFab(context),
       appBar: AppBar(
         backgroundColor: AppColors.bgDark,
         elevation: 0,
@@ -729,4 +732,64 @@ class _JugadorDashboardState extends State<JugadorDashboard>
 
   TextStyle _cellStyle() =>
       GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 12);
+
+  Widget _buildIaFab(BuildContext context) {
+    return FloatingActionButton.extended(
+      onPressed: () {
+        HapticFeedback.mediumImpact();
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (_, animation, __) => const IaChatScreen(),
+            transitionsBuilder: (_, anim, __, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: anim,
+                  curve: Curves.easeOutCubic,
+                )),
+                child: child,
+              );
+            },
+          ),
+        );
+      },
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      label: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: AppColors.maroonGradient,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: AppColors.gold.withOpacity(0.5),
+            width: 0.8,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.maroon.withOpacity(0.5),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🤖', style: TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text(
+              'Asistente IA',
+              style: GoogleFonts.inter(
+                color: AppColors.gold,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

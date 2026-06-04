@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../features/auth/auth_provider.dart';
+import 'package:flutter/services.dart';
+import '../features/ia/ia_chat_screen.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -97,6 +99,8 @@ class MainShell extends StatelessWidget {
       List<_NavTab> tabs, int currentIndex) {
     return Scaffold(
       backgroundColor: AppColors.bgDark,
+      floatingActionButton: _buildIaFab(context),
+      floatingActionButtonLocation: const IaFabLocation(isDesktop: true, isTablet: false),
       body: Row(
         children: [
           _DesktopSidebar(
@@ -129,6 +133,8 @@ class MainShell extends StatelessWidget {
       List<_NavTab> tabs, int currentIndex) {
     return Scaffold(
       backgroundColor: AppColors.bgDark,
+      floatingActionButton: _buildIaFab(context),
+      floatingActionButtonLocation: const IaFabLocation(isDesktop: false, isTablet: true),
       body: Row(
         children: [
           _TabletRail(
@@ -154,6 +160,8 @@ class MainShell extends StatelessWidget {
       extendBody: true,
       appBar: _IosStyleAppBar(auth: auth, onLogout: () => _showLogoutDialog(context)),
       body: child,
+      floatingActionButton: _buildIaFab(context),
+      floatingActionButtonLocation: const IaFabLocation(isDesktop: false, isTablet: false),
       bottomNavigationBar: _IosBottomBar(
         tabs: tabs,
         currentIndex: currentIndex,
@@ -184,6 +192,66 @@ class MainShell extends StatelessWidget {
             child: const Text('Salir'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildIaFab(BuildContext context) {
+    return FloatingActionButton.extended(
+      onPressed: () {
+        HapticFeedback.mediumImpact();
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (_, animation, __) => const IaChatScreen(),
+            transitionsBuilder: (_, anim, __, child) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: anim,
+                  curve: Curves.easeOutCubic,
+                )),
+                child: child,
+              );
+            },
+          ),
+        );
+      },
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      label: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: AppColors.maroonGradient,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: AppColors.gold.withValues(alpha: 0.5),
+            width: 0.8,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.maroon.withValues(alpha: 0.5),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🤖', style: TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text(
+              'Asistente IA',
+              style: GoogleFonts.inter(
+                color: AppColors.gold,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -842,4 +910,34 @@ class _NavTab {
     required this.label,
     required this.route,
   });
+}
+
+// ═══════════════════════════════════════════════════════════
+// CUSTOM FLOATING ACTION BUTTON LOCATION
+// ═══════════════════════════════════════════════════════════
+class IaFabLocation extends FloatingActionButtonLocation {
+  final bool isDesktop;
+  final bool isTablet;
+
+  const IaFabLocation({
+    required this.isDesktop,
+    required this.isTablet,
+  });
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    double x = 16.0;
+    if (isDesktop) {
+      x += 240.0; // Width of sidebar
+    } else if (isTablet) {
+      x += 72.0; // Width of rail
+    } else {
+      x += scaffoldGeometry.minInsets.left;
+    }
+
+    final double fabHeight = scaffoldGeometry.floatingActionButtonSize.height;
+    final double y = scaffoldGeometry.contentBottom - fabHeight - 16.0;
+
+    return Offset(x, y);
+  }
 }

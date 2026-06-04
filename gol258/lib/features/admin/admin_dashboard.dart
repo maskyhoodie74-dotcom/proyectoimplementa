@@ -9,6 +9,7 @@ import '../partidos/partidos_provider.dart';
 import '../../core/theme.dart';
 import '../../models/jugador.dart';
 import '../../models/partido.dart';
+import '../../widgets/anotadores_dialog.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -547,8 +548,48 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(ctx);
-                final ok = await context.read<PartidosProvider>().editarPartido(p.id, {'goles_local': gl, 'goles_visitante': gv, 'jugado': true, 'estado': 'finalizado'});
-                if (ok && mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Partido actualizado ✅'), backgroundColor: AppColors.success));
+                if (gl > 0 || gv > 0) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (dialogCtx) => AnotadoresDialog(
+                      equipoLocalId: p.equipoLocalId,
+                      equipoVisitanteId: p.equipoVisitanteId,
+                      equipoLocalNombre: p.equipoLocalNombre ?? 'Local',
+                      equipoVisitanteNombre: p.equipoVisitanteNombre ?? 'Visitante',
+                      golesLocal: gl,
+                      golesVisitante: gv,
+                      onSaved: (golesAnotadores, jugadoresLocal, jugadoresVisitante) async {
+                        final prov = context.read<PartidosProvider>();
+                        final jugProv = context.read<JugadoresProvider>();
+                        final ok = await prov.editarPartido(p.id, {
+                          'goles_local': gl,
+                          'goles_visitante': gv,
+                          'jugado': true,
+                          'estado': 'finalizado',
+                        });
+                        if (ok) {
+                          for (final entry in golesAnotadores.entries) {
+                            if (entry.value > 0) {
+                              await jugProv.sumarGoles(entry.key, entry.value);
+                            }
+                          }
+                          if (!p.jugado) {
+                            for (final j in [...jugadoresLocal, ...jugadoresVisitante]) {
+                              await jugProv.sumarPartidos(j.id, 1);
+                            }
+                          }
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Partido y anotadores actualizados ✅'), backgroundColor: AppColors.success));
+                          }
+                        }
+                      },
+                    ),
+                  );
+                } else {
+                  final ok = await context.read<PartidosProvider>().editarPartido(p.id, {'goles_local': gl, 'goles_visitante': gv, 'jugado': true, 'estado': 'finalizado'});
+                  if (ok && mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Partido actualizado ✅'), backgroundColor: AppColors.success));
+                }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.maroon),
               child: const Text('ACTUALIZAR'),

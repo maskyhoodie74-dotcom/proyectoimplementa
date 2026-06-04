@@ -21,18 +21,17 @@ class LiguillaProvider extends ChangeNotifier {
       ..sort((a, b) => a.numeroPartido.compareTo(b.numeroPartido));
   }
 
-  /// Carga el torneo activo actual, sus equipos y sus partidos
+  /// Carga el torneo activo actual o el último finalizado
   Future<void> fetchTorneoActivo() async {
     _loading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // 1. Obtener torneo activo (el más reciente activo)
+      // 1. Obtener el torneo más reciente
       final res = await supabase
           .from('liguilla_torneos')
           .select()
-          .eq('estado', 'activo')
           .order('created_at', ascending: false)
           .limit(1)
           .maybeSingle();

@@ -9,6 +9,8 @@ class Jugador {
   final int asistencias;
   final int partidos;
   final String? fotoUrl;
+  final bool esTitular;
+  final int ordenPlantilla;
   final DateTime? createdAt;
 
   const Jugador({
@@ -22,6 +24,8 @@ class Jugador {
     this.asistencias = 0,
     this.partidos = 0,
     this.fotoUrl,
+    this.esTitular = false,
+    this.ordenPlantilla = 0,
     this.createdAt,
   });
 
@@ -37,6 +41,8 @@ class Jugador {
       asistencias: map['asistencias'] ?? 0,
       partidos: map['partidos'] ?? 0,
       fotoUrl: map['foto_url'],
+      esTitular: map['es_titular'] ?? false,
+      ordenPlantilla: map['orden_plantilla'] ?? 0,
       createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at']) : null,
     );
   }
@@ -51,6 +57,38 @@ class Jugador {
       'asistencias': asistencias,
       'partidos': partidos,
       'foto_url': fotoUrl,
+      'es_titular': esTitular,
+      'orden_plantilla': ordenPlantilla,
     };
+  }
+
+  Jugador copyWith({
+    String? nombre,
+    String? equipoId,
+    String? equipoNombre,
+    int? numero,
+    String? posicion,
+    int? goles,
+    int? asistencias,
+    int? partidos,
+    String? fotoUrl,
+    bool? esTitular,
+    int? ordenPlantilla,
+  }) {
+    return Jugador(
+      id: id,
+      nombre: nombre ?? this.nombre,
+      equipoId: equipoId ?? this.equipoId,
+      equipoNombre: equipoNombre ?? this.equipoNombre,
+      numero: numero ?? this.numero,
+      posicion: posicion ?? this.posicion,
+      goles: goles ?? this.goles,
+      asistencias: asistencias ?? this.asistencias,
+      partidos: partidos ?? this.partidos,
+      fotoUrl: fotoUrl ?? this.fotoUrl,
+      esTitular: esTitular ?? this.esTitular,
+      ordenPlantilla: ordenPlantilla ?? this.ordenPlantilla,
+      createdAt: createdAt,
+    );
   }
 }

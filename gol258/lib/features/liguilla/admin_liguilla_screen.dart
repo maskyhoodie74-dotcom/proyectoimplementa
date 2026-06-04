@@ -7,6 +7,8 @@ import '../../core/theme.dart';
 import 'liguilla_provider.dart';
 import '../equipos/equipos_provider.dart';
 import '../../models/liguilla_torneo.dart';
+import '../jugadores/jugadores_provider.dart';
+import '../../widgets/anotadores_dialog.dart';
 
 class AdminLiguillaScreen extends StatefulWidget {
   const AdminLiguillaScreen({super.key});
@@ -256,7 +258,30 @@ class _AdminLiguillaScreenState extends State<AdminLiguillaScreen> {
                   title: Text(eq.nombreEquipo ?? 'Desconocido', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                   trailing: IconButton(
                     icon: const Icon(CupertinoIcons.trash, color: AppColors.error, size: 20),
-                    onPressed: () => p.quitarEquipo(eq.id),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: AppColors.bgCard,
+                          title: Text('Quitar equipo',
+                              style: GoogleFonts.inter(color: AppColors.textPrimary)),
+                          content: Text('¿Estás seguro de que deseas quitar a "${eq.nombreEquipo ?? 'Desconocido'}" de la liguilla?',
+                              style: GoogleFonts.inter(color: AppColors.textSecondary)),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Cancelar')),
+                            TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text('Quitar',
+                                    style: TextStyle(color: AppColors.error))),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        p.quitarEquipo(eq.id);
+                      }
+                    },
                   ),
                 );
               },
@@ -468,10 +493,41 @@ class _AdminLiguillaScreenState extends State<AdminLiguillaScreen> {
                   'lugar': lugarCtrl.text,
                 });
                 if (gl > 0 || gv > 0) {
-                  // Registrar resultado avanza el bracket
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (dialogCtx) => AnotadoresDialog(
+                      equipoLocalId: pt.equipoLocalId!,
+                      equipoVisitanteId: pt.equipoVisitanteId!,
+                      equipoLocalNombre: pt.equipoLocalNombre ?? 'Local',
+                      equipoVisitanteNombre: pt.equipoVisitanteNombre ?? 'Visitante',
+                      golesLocal: gl,
+                      golesVisitante: gv,
+                      onSaved: (golesAnotadores, jugadoresLocal, jugadoresVisitante) async {
+                        final jugProv = context.read<JugadoresProvider>();
+                        final ok = await p.registrarResultado(pt.id, gl, gv);
+                        if (ok) {
+                          for (final entry in golesAnotadores.entries) {
+                            if (entry.value > 0) {
+                              await jugProv.sumarGoles(entry.key, entry.value);
+                            }
+                          }
+                          if (!pt.jugado) {
+                            for (final j in [...jugadoresLocal, ...jugadoresVisitante]) {
+                              await jugProv.sumarPartidos(j.id, 1);
+                            }
+                          }
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Partido y anotadores actualizados ✅'), backgroundColor: AppColors.success));
+                          }
+                        }
+                      },
+                    ),
+                  );
+                } else {
                   await p.registrarResultado(pt.id, gl, gv);
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Partido actualizado ✅'), backgroundColor: AppColors.success));
                 }
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Partido actualizado'), backgroundColor: AppColors.success));
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: Colors.black),
               child: const Text('Guardar'),

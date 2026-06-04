@@ -51,14 +51,24 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     final todos = [...partidos.proximosPartidos, ...partidos.resultados];
     final selectedEvents = _selectedDay != null ? _getEventsForDay(_selectedDay!, todos) : <Partido>[];
 
+    String earliestTime = '';
+    if (selectedEvents.isNotEmpty) {
+      final sortedEvents = List<Partido>.from(selectedEvents)
+        ..sort((a, b) => (a.hora).compareTo(b.hora));
+      earliestTime = sortedEvents.first.hora;
+    }
+
     return Scaffold(
       floatingActionButton: isAdmin
-          ? FloatingActionButton(
-              backgroundColor: AppColors.gold,
-              foregroundColor: AppColors.bgDark,
-              tooltip: 'Programar Partido',
-              onPressed: _showPartidoForm,
-              child: const Icon(Icons.add),
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 80),
+              child: FloatingActionButton(
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.bgDark,
+                tooltip: 'Programar Partido',
+                onPressed: _showPartidoForm,
+                child: const Icon(Icons.add),
+              ),
             )
           : null,
       body: partidos.loading
@@ -67,94 +77,151 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
               color: AppColors.gold,
               backgroundColor: AppColors.bgCard,
               onRefresh: () => partidos.fetchPartidos(),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: Column(
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.bgCard,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.divider),
-                        ),
-                        child: TableCalendar<Partido>(
-                          firstDay: DateTime.utc(2020, 1, 1),
-                          lastDay: DateTime.utc(2030, 12, 31),
-                          focusedDay: _focusedDay,
-                          calendarFormat: _calendarFormat,
-                          eventLoader: (day) => _getEventsForDay(day, todos),
-                          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                          onDaySelected: (selectedDay, focusedDay) {
-                            if (!isSameDay(_selectedDay, selectedDay)) {
-                              setState(() {
-                                _selectedDay = selectedDay;
-                                _focusedDay = focusedDay;
-                              });
-                            }
-                          },
-                          onFormatChanged: (format) {
-                            if (_calendarFormat != format) {
-                              setState(() {
-                                _calendarFormat = format;
-                              });
-                            }
-                          },
-                          onPageChanged: (focusedDay) {
-                            _focusedDay = focusedDay;
-                          },
-                          calendarStyle: CalendarStyle(
-                            defaultTextStyle: const TextStyle(color: AppColors.textPrimary),
-                            weekendTextStyle: const TextStyle(color: AppColors.textSecondary),
-                            outsideTextStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
-                            selectedDecoration: const BoxDecoration(
-                              color: AppColors.gold,
-                              shape: BoxShape.circle,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 800),
+                        child: Column(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.bgCard,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.divider),
+                              ),
+                              child: TableCalendar<Partido>(
+                                firstDay: DateTime.utc(2020, 1, 1),
+                                lastDay: DateTime.utc(2030, 12, 31),
+                                focusedDay: _focusedDay,
+                                calendarFormat: _calendarFormat,
+                                eventLoader: (day) => _getEventsForDay(day, todos),
+                                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                                onDaySelected: (selectedDay, focusedDay) {
+                                  if (!isSameDay(_selectedDay, selectedDay)) {
+                                    setState(() {
+                                      _selectedDay = selectedDay;
+                                      _focusedDay = focusedDay;
+                                    });
+                                  }
+                                },
+                                onFormatChanged: (format) {
+                                  if (_calendarFormat != format) {
+                                    setState(() {
+                                      _calendarFormat = format;
+                                    });
+                                  }
+                                },
+                                onPageChanged: (focusedDay) {
+                                  _focusedDay = focusedDay;
+                                },
+                                calendarStyle: CalendarStyle(
+                                  defaultTextStyle: const TextStyle(color: AppColors.textPrimary),
+                                  weekendTextStyle: const TextStyle(color: AppColors.textSecondary),
+                                  outsideTextStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
+                                  selectedDecoration: const BoxDecoration(
+                                    color: AppColors.gold,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  selectedTextStyle: const TextStyle(color: AppColors.bgDark, fontWeight: FontWeight.bold),
+                                  todayDecoration: BoxDecoration(
+                                    color: AppColors.maroonDark.withOpacity(0.5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  markerDecoration: const BoxDecoration(
+                                    color: AppColors.maroon,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                headerStyle: HeaderStyle(
+                                  formatButtonVisible: false,
+                                  titleCentered: true,
+                                  titleTextStyle: GoogleFonts.inter(color: AppColors.gold, fontSize: 16, fontWeight: FontWeight.bold),
+                                  leftChevronIcon: const Icon(Icons.chevron_left, color: AppColors.gold),
+                                  rightChevronIcon: const Icon(Icons.chevron_right, color: AppColors.gold),
+                                ),
+                                daysOfWeekStyle: const DaysOfWeekStyle(
+                                  weekdayStyle: TextStyle(color: AppColors.textSecondary),
+                                  weekendStyle: TextStyle(color: AppColors.textSecondary),
+                                ),
+                              ),
                             ),
-                            selectedTextStyle: const TextStyle(color: AppColors.bgDark, fontWeight: FontWeight.bold),
-                            todayDecoration: BoxDecoration(
-                              color: AppColors.maroonDark.withOpacity(0.5),
-                              shape: BoxShape.circle,
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  _selectedDay != null
+                                      ? DateFormat('EEEE, d MMM yyyy', 'es_MX').format(_selectedDay!).toUpperCase()
+                                      : 'SELECCIONA UNA FECHA',
+                                  style: GoogleFonts.inter(color: AppColors.gold, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 1),
+                                ),
+                              ),
                             ),
-                            markerDecoration: const BoxDecoration(
-                              color: AppColors.maroon,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          headerStyle: HeaderStyle(
-                            formatButtonVisible: false,
-                            titleCentered: true,
-                            titleTextStyle: GoogleFonts.inter(color: AppColors.gold, fontSize: 16, fontWeight: FontWeight.bold),
-                            leftChevronIcon: const Icon(Icons.chevron_left, color: AppColors.gold),
-                            rightChevronIcon: const Icon(Icons.chevron_right, color: AppColors.gold),
-                          ),
-                          daysOfWeekStyle: const DaysOfWeekStyle(
-                            weekdayStyle: TextStyle(color: AppColors.textSecondary),
-                            weekendStyle: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            _selectedDay != null
-                                ? DateFormat('EEEE, d MMM yyyy', 'es_MX').format(_selectedDay!).toUpperCase()
-                                : 'SELECCIONA UNA FECHA',
-                            style: GoogleFonts.inter(color: AppColors.gold, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 1),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: selectedEvents.isEmpty
-                            ? Center(child: Text('No hay partidos este día.', style: GoogleFonts.inter(color: AppColors.textSecondary)))
-                            : ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                physics: const BouncingScrollPhysics(),
+                            if (selectedEvents.isNotEmpty)
+                              Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.maroonGradient,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: AppColors.gold.withOpacity(0.5)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.maroon.withOpacity(0.3),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.stadium, color: AppColors.gold, size: 36),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            isSameDay(_selectedDay, DateTime.now()) 
+                                                ? '¡PARTIDOS DE HOY A LAS $earliestTime!' 
+                                                : 'PARTIDOS A LAS $earliestTime',
+                                            style: GoogleFonts.inter(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '¡Están todos invitados a apoyar a sus equipos favoritos!',
+                                            style: GoogleFonts.inter(
+                                              color: AppColors.gold,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 12),
+                            if (selectedEvents.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 32),
+                                child: Center(child: Text('No hay partidos este día.', style: GoogleFonts.inter(color: AppColors.textSecondary))),
+                              )
+                            else
+                              ListView.builder(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8).copyWith(bottom: 100),
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
                                 itemCount: selectedEvents.length,
                                 itemBuilder: (context, index) {
                                   final p = selectedEvents[index];
@@ -164,10 +231,12 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                                   );
                                 },
                               ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
     );
@@ -187,8 +256,10 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
   TimeOfDay _hora = const TimeOfDay(hour: 16, minute: 0);
   final _lugarCtrl = TextEditingController();
   String _categoria = 'Varonil';
+  String _tipoTorneo = 'Fase Regular';
   bool _saving = false;
   final _categorias = ['Varonil', 'Femenil', 'Mixto', 'Juvenil', 'División I'];
+  final _tiposTorneo = ['Fase Regular', 'Liguilla', 'Amistoso', 'Final'];
 
   @override
   void dispose() {
@@ -210,7 +281,7 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
       'fecha': DateFormat('yyyy-MM-dd').format(_fecha),
       'hora': '${_hora.hour.toString().padLeft(2, '0')}:${_hora.minute.toString().padLeft(2, '0')}',
       'lugar': _lugarCtrl.text.trim().isEmpty ? null : _lugarCtrl.text.trim(),
-      'categoria': _categoria,
+      'categoria': '$_categoria - $_tipoTorneo',
       'jugado': false,
       'estado': 'programado',
     };
@@ -315,20 +386,41 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
                 style: GoogleFonts.inter(color: AppColors.textPrimary),
                 decoration: const InputDecoration(hintText: 'Cancha principal')),
             const SizedBox(height: 16),
-            _dropLabel('CATEGORÍA'),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                  color: AppColors.bgCardLight, borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.divider)),
-              child: DropdownButton<String>(
-                value: _categoria, isExpanded: true, dropdownColor: AppColors.bgCard, underline: const SizedBox(),
-                items: _categorias.map((c) => DropdownMenuItem(value: c,
-                    child: Text(c, style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14)))).toList(),
-                onChanged: (v) => setState(() => _categoria = v!),
-              ),
-            ),
+            Row(children: [
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _dropLabel('CATEGORÍA'),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: AppColors.bgCardLight, borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.divider)),
+                  child: DropdownButton<String>(
+                    value: _categoria, isExpanded: true, dropdownColor: AppColors.bgCard, underline: const SizedBox(),
+                    items: _categorias.map((c) => DropdownMenuItem(value: c,
+                        child: Text(c, style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14), overflow: TextOverflow.ellipsis))).toList(),
+                    onChanged: (v) => setState(() => _categoria = v!),
+                  ),
+                ),
+              ])),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _dropLabel('TIPO DE PARTIDO'),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: AppColors.bgCardLight, borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.divider)),
+                  child: DropdownButton<String>(
+                    value: _tipoTorneo, isExpanded: true, dropdownColor: AppColors.bgCard, underline: const SizedBox(),
+                    items: _tiposTorneo.map((c) => DropdownMenuItem(value: c,
+                        child: Text(c, style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14), overflow: TextOverflow.ellipsis))).toList(),
+                    onChanged: (v) => setState(() => _tipoTorneo = v!),
+                  ),
+                ),
+              ])),
+            ]),
             const SizedBox(height: 24),
             SizedBox(width: double.infinity,
                 child: ElevatedButton(

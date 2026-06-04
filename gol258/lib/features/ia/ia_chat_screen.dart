@@ -171,9 +171,30 @@ class _IaChatScreenState extends State<IaChatScreen>
       actions: [
         if (ia.messages.isNotEmpty)
           IconButton(
-            onPressed: () {
+            onPressed: () async {
               HapticFeedback.mediumImpact();
-              ia.clearChat();
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  backgroundColor: AppColors.bgCard,
+                  title: Text('Limpiar Chat',
+                      style: GoogleFonts.inter(color: AppColors.textPrimary)),
+                  content: Text('¿Estás seguro de que deseas eliminar todo el historial de chat con el asistente?',
+                      style: GoogleFonts.inter(color: AppColors.textSecondary)),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancelar')),
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Limpiar',
+                            style: TextStyle(color: AppColors.error))),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                ia.clearChat();
+              }
             },
             icon: const Icon(
               CupertinoIcons.trash,

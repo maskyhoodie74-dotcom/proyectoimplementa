@@ -205,10 +205,39 @@ class JugadoresProvider extends ChangeNotifier {
           .from('jugadores')
           .select('*, equipos(nombre_equipo, color_hex)')
           .eq('equipo_id', equipoId)
+          .order('orden_plantilla')
           .order('nombre_jugador');
       return (data as List).map((e) => Jugador.fromMap(e)).toList();
     } catch (e) {
       return [];
+    }
+  }
+
+  /// Guarda el orden de la plantilla (titulares y banca) para un equipo.
+  /// Recibe la lista completa de jugadores ya reordenada con esTitular asignado.
+  Future<bool> guardarPlantilla(String equipoId, List<Jugador> jugadores) async {
+    try {
+      for (int i = 0; i < jugadores.length; i++) {
+        final j = jugadores[i];
+        await supabase.from('jugadores').update({
+          'es_titular': j.esTitular,
+          'orden_plantilla': i,
+        }).eq('id', j.id);
+      }
+      // Actualizar en memoria
+      for (int i = 0; i < jugadores.length; i++) {
+        final updated = jugadores[i].copyWith(ordenPlantilla: i);
+        final idx = _jugadores.indexWhere((j) => j.id == updated.id);
+        if (idx != -1) {
+          _jugadores[idx] = updated;
+        }
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 }
