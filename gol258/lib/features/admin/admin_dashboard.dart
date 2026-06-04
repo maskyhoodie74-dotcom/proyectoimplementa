@@ -68,16 +68,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
         elevation: 0,
         title: Row(
           children: [
-            Container(
+            Image.asset(
+              'assets/images/logo_no_bg.png',
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.maroonDark,
-                border: Border.all(color: AppColors.gold, width: 1.5),
-              ),
-              child: const Center(
-                  child: Text('⚽', style: TextStyle(fontSize: 16))),
+              fit: BoxFit.contain,
             ),
             const SizedBox(width: 10),
             Text('COBRAS',
