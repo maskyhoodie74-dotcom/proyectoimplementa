@@ -1,0 +1,47 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Inject Gemini API Key
+        run: |
+          sed -i "s/tu_api_key_aqui/${{ secrets.GEMINI_API_KEY }}/g" gol258/lib/core/gemini_config.dart
+        shell: bash
+
+      - name: Install Dependencies
+        run: flutter pub get
+        working-directory: gol258
+
+      - name: Build APK
+        run: flutter build apk --release
+        working-directory: gol258
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gol258-release-apk
+          path: gol258/build/app/outputs/flutter-apk/app-release.apk
