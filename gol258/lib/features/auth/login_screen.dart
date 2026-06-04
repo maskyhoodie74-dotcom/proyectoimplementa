@@ -207,81 +207,55 @@ class _LoginScreenState extends State<LoginScreen>
       animation: _shineAnim,
       builder: (context, child) {
         return Container(
-          width: 120,
-          height: 120,
+          width: 130,
+          height: 130,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const RadialGradient(
-              colors: [Color(0xFF9C2438), Color(0xFF4A0E1A)],
-              center: Alignment(-0.3, -0.3),
-            ),
-            border: Border.all(color: AppColors.gold, width: 2.5),
             boxShadow: [
               BoxShadow(
                 color: AppColors.gold.withOpacity(0.35),
                 blurRadius: 30,
-                spreadRadius: 5,
-              ),
-              BoxShadow(
-                color: AppColors.maroon.withOpacity(0.5),
-                blurRadius: 15,
-                spreadRadius: 0,
-                offset: const Offset(0, 8),
+                spreadRadius: 2,
               ),
             ],
           ),
-          child: ClipOval(
-            child: Stack(
-              children: [
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('⚽', style: TextStyle(fontSize: 30)),
-                      const SizedBox(height: 2),
-                      Text(
-                        'GOL',
-                        style: GoogleFonts.inter(
-                          color: AppColors.gold,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -1,
-                        ),
-                      ),
-                      Text(
-                        '258',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ],
-                  ),
+          child: Stack(
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/images/logo_no_bg.png',
+                  width: 130,
+                  height: 130,
+                  fit: BoxFit.contain,
                 ),
-                // Shine effect
-                Positioned.fill(
-                  child: Transform.translate(
-                    offset: Offset(_shineAnim.value * 200, 0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.transparent,
-                            Colors.white.withOpacity(0.12),
-                            Colors.transparent,
-                          ],
-                          stops: const [0.0, 0.5, 1.0],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
+              ),
+              // Shine effect
+              ClipOval(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Transform.translate(
+                        offset: Offset(_shineAnim.value * 200, 0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.white.withOpacity(0.18),
+                                Colors.transparent,
+                              ],
+                              stops: const [0.0, 0.5, 1.0],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

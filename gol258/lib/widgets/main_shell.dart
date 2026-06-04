@@ -878,21 +878,11 @@ class _BottomBarItemState extends State<_BottomBarItem>
 // SHARED: Logo circle
 // ═══════════════════════════════════════════════════════════
 Widget _buildLogoCircle({required double size}) {
-  return Container(
+  return Image.asset(
+    'assets/images/logo_no_bg.png',
     width: size,
     height: size,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      gradient: AppColors.maroonGradient,
-      border: Border.all(color: AppColors.gold, width: size > 40 ? 2 : 1.5),
-      boxShadow: AppColors.goldGlowSubtle,
-    ),
-    child: Center(
-      child: Text(
-        '⚽',
-        style: TextStyle(fontSize: size * 0.45),
-      ),
-    ),
+    fit: BoxFit.contain,
   );
 }
 
