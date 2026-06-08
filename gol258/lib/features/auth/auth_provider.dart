@@ -117,7 +117,20 @@ class AuthProvider extends ChangeNotifier {
           .select('jugador_id')
           .eq('usuario_id', _usuarioId!)
           .maybeSingle();
-      if (jugResp != null) _jugadorId = jugResp['jugador_id'].toString();
+      if (jugResp != null) {
+        _jugadorId = jugResp['jugador_id'].toString();
+        // Obtener el equipo_id directamente del perfil del jugador si no lo tenemos aún
+        if (_equipoId == null) {
+          final jData = await supabase
+              .from('jugadores')
+              .select('equipo_id')
+              .eq('id', _jugadorId!)
+              .maybeSingle();
+          if (jData != null && jData['equipo_id'] != null) {
+            _equipoId = jData['equipo_id'].toString();
+          }
+        }
+      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_role', 'usuario');

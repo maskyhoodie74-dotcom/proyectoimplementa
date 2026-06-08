@@ -454,12 +454,20 @@ class _EquipoFormSheetState extends State<_EquipoFormSheet> {
       final ok = await context
           .read<EquiposProvider>()
           .editarEquipo(widget.equipo!.id, data);
-      if (ok && mounted) Navigator.pop(context);
+      if (ok && mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ Equipo actualizado correctamente')),
+        );
+      }
     } else {
       final creds =
           await context.read<EquiposProvider>().crearEquipo(data);
       if (creds != null && mounted) {
         Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ ¡Equipo creado exitosamente!')),
+        );
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -477,6 +485,11 @@ class _EquipoFormSheetState extends State<_EquipoFormSheet> {
                       style: TextStyle(color: AppColors.gold))),
             ],
           ),
+        );
+      } else if (mounted) {
+        final errorMsg = context.read<EquiposProvider>().error ?? 'Error al crear equipo';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ $errorMsg'), backgroundColor: Colors.red),
         );
       }
     }

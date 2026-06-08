@@ -13,7 +13,7 @@ class PartidosProvider extends ChangeNotifier {
   String? get error => _error;
 
   List<Partido> get proximosPartidos => _partidos
-      .where((p) => !p.jugado && p.fecha.isAfter(DateTime.now().subtract(const Duration(hours: 2))))
+      .where((p) => !p.jugado)
       .toList()
     ..sort((a, b) => a.fecha.compareTo(b.fecha));
 

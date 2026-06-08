@@ -41,7 +41,10 @@ class _QuinielasScreenState extends State<QuinielasScreen> {
   void _populateControllers() {
     final quinielas = context.read<QuinielasProvider>().quinielas;
     for (var q in quinielas) {
-      if (!_localControllers.containsKey(q.partidoId)) {
+      if (_localControllers.containsKey(q.partidoId)) {
+        _localControllers[q.partidoId]!.text = q.golesLocalPred.toString();
+        _visitanteControllers[q.partidoId]!.text = q.golesVisitPred.toString();
+      } else {
         _localControllers[q.partidoId] = TextEditingController(text: q.golesLocalPred.toString());
         _visitanteControllers[q.partidoId] = TextEditingController(text: q.golesVisitPred.toString());
       }
@@ -69,8 +72,14 @@ class _QuinielasScreenState extends State<QuinielasScreen> {
     final uId = int.tryParse(auth.usuarioId!);
     if (uId == null) return;
 
-    final locText = _localControllers[partido.id]?.text ?? '';
-    final visText = _visitanteControllers[partido.id]?.text ?? '';
+    final pId = int.tryParse(partido.id);
+    if (pId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error: ID de partido inválido')));
+      return;
+    }
+
+    final locText = _localControllers[pId]?.text ?? '';
+    final visText = _visitanteControllers[pId]?.text ?? '';
 
     if (locText.isEmpty || visText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ingresa ambos goles para pronosticar')));
@@ -82,14 +91,23 @@ class _QuinielasScreenState extends State<QuinielasScreen> {
 
     final quiniela = Quiniela(
       usuarioId: uId,
-      partidoId: int.tryParse(partido.id.toString()) ?? 0,
+      partidoId: pId,
       golesLocalPred: locGol,
       golesVisitPred: visGol,
     );
 
     final success = await context.read<QuinielasProvider>().guardarQuiniela(quiniela);
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Pronóstico guardado!')));
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ ¡Pronóstico guardado!')),
+        );
+      } else {
+        final errorMsg = context.read<QuinielasProvider>().error ?? 'Error al guardar';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ $errorMsg'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

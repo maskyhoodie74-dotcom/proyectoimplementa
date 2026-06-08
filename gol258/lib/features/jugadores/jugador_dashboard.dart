@@ -11,6 +11,7 @@ import '../../core/theme.dart';
 import 'package:flutter/services.dart';
 import '../ia/ia_chat_screen.dart';
 import '../../widgets/player_fut_card.dart';
+import '../../widgets/match_card.dart';
 import '../shared/image_upload_service.dart';
 
 class JugadorDashboard extends StatefulWidget {
@@ -354,7 +355,10 @@ class _JugadorDashboardState extends State<JugadorDashboard>
       return _buildInfoBox('No hay partidos próximos programados para tu equipo.');
     }
     return Column(
-      children: proximos.take(3).map((p) => _buildPartidoCard(p, false)).toList(),
+      children: proximos.take(3).map((p) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: MatchCard(partido: p, showScore: false),
+      )).toList(),
     );
   }
 
@@ -365,7 +369,10 @@ class _JugadorDashboardState extends State<JugadorDashboard>
         .toList();
     if (resultados.isEmpty) return _buildInfoBox('Tu equipo aún no tiene resultados registrados.');
     return Column(
-      children: resultados.map((p) => _buildPartidoCard(p, true)).toList(),
+      children: resultados.map((p) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: MatchCard(partido: p, showScore: true),
+      )).toList(),
     );
   }
 

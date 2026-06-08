@@ -31,6 +31,19 @@ class EquiposProvider extends ChangeNotifier {
   Future<Map<String, String>?> crearEquipo(Map<String, dynamic> data) async {
     try {
       final nombre = data['nombre_equipo'] as String;
+
+      // Verificar si el equipo ya existe
+      final existing = await supabase
+          .from('equipos')
+          .select('id')
+          .ilike('nombre_equipo', nombre.trim())
+          .maybeSingle();
+      if (existing != null) {
+        _error = 'Ya existe un equipo con el nombre "$nombre".';
+        notifyListeners();
+        return null;
+      }
+
       final slug = nombre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
       final ts = DateTime.now().millisecondsSinceEpoch.toString().substring(8);
       final correo = 'equipo_${slug}_$ts@gol258.com';

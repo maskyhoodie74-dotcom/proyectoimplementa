@@ -30,8 +30,12 @@ class QuinielasProvider extends ChangeNotifier {
 
   Future<bool> guardarQuiniela(Quiniela quiniela) async {
     try {
-      final data = quiniela.toJson();
-      data.remove('id'); // Supabase serial
+      final data = {
+        'usuario_id': quiniela.usuarioId,
+        'partido_id': quiniela.partidoId,
+        'goles_local_pred': quiniela.golesLocalPred,
+        'goles_visit_pred': quiniela.golesVisitPred,
+      };
 
       // Insert or update
       await supabase.from('quinielas').upsert(data, onConflict: 'usuario_id, partido_id');
@@ -39,6 +43,7 @@ class QuinielasProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _error = e.toString();
+      debugPrint('Error guardando quiniela: $e');
       notifyListeners();
       return false;
     }

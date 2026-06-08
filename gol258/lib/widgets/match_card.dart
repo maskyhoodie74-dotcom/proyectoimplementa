@@ -330,10 +330,6 @@ class _MatchCardState extends State<MatchCard>
   Widget _buildBottomRow() {
     final hasLugar = widget.partido.lugar != null;
     final hasDetails = widget.showDetails;
-    final isFinished = widget.showScore && widget.partido.jugado;
-    if (!hasLugar && !hasDetails && !isFinished) {
-      return const SizedBox.shrink();
-    }
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
       child: Row(
@@ -352,7 +348,7 @@ class _MatchCardState extends State<MatchCard>
             ),
           ] else
             const Spacer(),
-          if (hasDetails)
+          if (hasDetails) ...[
             Text(
               'VER DETALLES →',
               style: GoogleFonts.inter(
@@ -362,39 +358,38 @@ class _MatchCardState extends State<MatchCard>
                 letterSpacing: 0.5,
               ),
             ),
-          if (isFinished) ...[
             const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () {
-                final pId = int.tryParse(widget.partido.id.toString());
-                if (pId != null) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => HighlightsScreen(partidoId: pId),
-                  ));
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.maroonDark,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.gold.withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('📸', style: TextStyle(fontSize: 10)),
-                    const SizedBox(width: 4),
-                    Text('Galería',
-                        style: GoogleFonts.inter(
-                            color: AppColors.gold,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700)),
-                  ],
-                ),
+          ],
+          GestureDetector(
+            onTap: () {
+              final pId = int.tryParse(widget.partido.id.toString());
+              if (pId != null) {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => HighlightsScreen(partidoId: pId),
+                ));
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.maroonDark,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.gold.withOpacity(0.4)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('📸', style: TextStyle(fontSize: 10)),
+                  const SizedBox(width: 4),
+                  Text('Galería',
+                      style: GoogleFonts.inter(
+                          color: AppColors.gold,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700)),
+                ],
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
