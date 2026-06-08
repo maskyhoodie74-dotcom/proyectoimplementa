@@ -10,6 +10,8 @@ import '../equipos/equipos_provider.dart';
 import '../../core/theme.dart';
 import 'package:flutter/services.dart';
 import '../ia/ia_chat_screen.dart';
+import '../../widgets/player_fut_card.dart';
+import '../shared/image_upload_service.dart';
 
 class JugadorDashboard extends StatefulWidget {
   const JugadorDashboard({super.key});
@@ -182,25 +184,59 @@ class _JugadorDashboardState extends State<JugadorDashboard>
           child: Column(
             children: [
               // Avatar
-              Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.bgDark,
-                  border: Border.all(color: AppColors.gold, width: 3),
-                  boxShadow: AppColors.goldGlow,
-                ),
-                child: Center(
-                  child: jugador != null
-                      ? Text(
-                          '#${jugador.numero}',
-                          style: GoogleFonts.inter(
-                              color: AppColors.gold,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900),
-                        )
-                      : const Icon(Icons.person, color: AppColors.gold, size: 40),
+              GestureDetector(
+                onTap: () async {
+                  if (jugador == null) return;
+                  final url = await ImageUploadService.pickAndUploadImage(folder: 'profiles');
+                  if (url != null && context.mounted) {
+                    final success = await context.read<JugadoresProvider>().editarJugador(jugador.id, {'foto_url': url});
+                    if (success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto de perfil actualizada')));
+                    }
+                  }
+                },
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.bgDark,
+                        border: Border.all(color: AppColors.gold, width: 3),
+                        boxShadow: AppColors.goldGlow,
+                        image: jugador?.fotoUrl != null
+                            ? DecorationImage(
+                                image: NetworkImage(jugador!.fotoUrl!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: jugador?.fotoUrl == null
+                          ? Center(
+                              child: jugador != null
+                                  ? Text(
+                                      '#${jugador.numero}',
+                                      style: GoogleFonts.inter(
+                                          color: AppColors.gold,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w900),
+                                    )
+                                  : const Icon(Icons.person, color: AppColors.gold, size: 40),
+                            )
+                          : null,
+                    ),
+                    if (jugador != null)
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.maroon,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.camera_alt, color: AppColors.gold, size: 16),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -238,9 +274,32 @@ class _JugadorDashboardState extends State<JugadorDashboard>
                       letterSpacing: 2),
                 ),
               ],
+              if (jugador != null) ...[
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () => _mostrarCartaFUT(context, jugador),
+                  icon: const Icon(Icons.style, color: AppColors.gold, size: 16),
+                  label: Text('VER CARTA FUT', style: GoogleFonts.inter(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.gold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _mostrarCartaFUT(BuildContext context, dynamic jugador) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.transparent,
+        contentPadding: EdgeInsets.zero,
+        content: PlayerFutCard(jugador: jugador),
       ),
     );
   }

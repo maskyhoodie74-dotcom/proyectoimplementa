@@ -11,6 +11,8 @@ import 'features/jugadores/jugadores_provider.dart';
 import 'features/partidos/partidos_provider.dart';
 import 'features/ia/ia_provider.dart';
 import 'features/liguilla/liguilla_provider.dart';
+import 'features/quinielas/quinielas_provider.dart';
+import 'features/highlights/highlights_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +38,8 @@ class Gol258App extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PartidosProvider()),
         ChangeNotifierProvider(create: (_) => IaProvider()),
         ChangeNotifierProvider(create: (_) => LiguillaProvider()..fetchTorneoActivo()),
+        ChangeNotifierProvider(create: (_) => QuinielasProvider()),
+        ChangeNotifierProvider(create: (_) => HighlightsProvider()),
       ],
       child: Builder(
         builder: (context) {

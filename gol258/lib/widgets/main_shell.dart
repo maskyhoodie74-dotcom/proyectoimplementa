@@ -16,6 +16,8 @@ class MainShell extends StatelessWidget {
   int _locationToIndex(String location, bool isAdmin) {
     if (location.startsWith('/calendario')) return 1;
     if (location.startsWith('/posiciones')) return 2;
+    if (location.startsWith('/quinielas')) return isAdmin ? 0 : 3;
+    if (location.startsWith('/ranking')) return isAdmin ? 0 : 3;
     if (location.startsWith('/admin')) return isAdmin ? 3 : 0;
     if (location.startsWith('/equipos')) return isAdmin ? 3 : 0;
     if (location.startsWith('/jugadores')) return isAdmin ? 3 : 0;
@@ -53,12 +55,12 @@ class MainShell extends StatelessWidget {
         label: 'Admin',
         route: '/admin',
       ));
-    } else if (auth.jugadorId != null) {
+    } else {
       tabs.add(const _NavTab(
-        icon: CupertinoIcons.person_circle,
-        activeIcon: CupertinoIcons.person_circle_fill,
-        label: 'Mi Perfil',
-        route: '/jugador-dashboard',
+        icon: CupertinoIcons.sportscourt,
+        activeIcon: CupertinoIcons.sportscourt_fill,
+        label: 'Quiniela',
+        route: '/quinielas',
       ));
     }
     return tabs;
