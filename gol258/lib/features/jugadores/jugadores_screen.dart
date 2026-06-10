@@ -38,29 +38,67 @@ class _JugadoresScreenState extends State<JugadoresScreen> {
     final jugadores = context.watch<JugadoresProvider>();
     final isAdmin = context.watch<AuthProvider>().isAdmin;
     return Scaffold(
-      floatingActionButton: isAdmin
-          ? FloatingActionButton(
-              backgroundColor: AppColors.gold,
-              foregroundColor: AppColors.bgDark,
-              tooltip: 'Agregar Jugador',
-              onPressed: () => _showForm(),
-              child: const Icon(Icons.person_add),
-            )
-          : null,
-      body: jugadores.loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
-          : jugadores.jugadores.isEmpty
-              ? Center(
-                  child: Text(
-                    'Sin jugadores registrados',
-                    style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 18),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ─── Header ──────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'JUGADORES',
+                      style: GoogleFonts.inter(
+                        color: AppColors.gold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
                   ),
-                )
-              : RefreshIndicator(
-                  color: AppColors.gold,
-                  backgroundColor: AppColors.bgCard,
-                  onRefresh: () => jugadores.fetchJugadores(),
-                  child: Center(
+                  if (isAdmin)
+                    GestureDetector(
+                      onTap: () => _showForm(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.goldGradient,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.person_add, color: AppColors.bgDark, size: 16),
+                            const SizedBox(width: 6),
+                            Text('Jugador',
+                                style: GoogleFonts.inter(
+                                    color: AppColors.bgDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // ─── Lista ──────────────────────────────────────────────
+            Expanded(
+              child: jugadores.loading
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
+                  : jugadores.jugadores.isEmpty
+                      ? Center(
+                          child: Text(
+                            'Sin jugadores registrados',
+                            style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 18),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          color: AppColors.gold,
+                          backgroundColor: AppColors.bgCard,
+                          onRefresh: () => jugadores.fetchJugadores(),
+                          child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 800),
                       child: ListView.builder(
@@ -151,6 +189,10 @@ class _JugadoresScreenState extends State<JugadoresScreen> {
                     ),
                   ),
                 ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

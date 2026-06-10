@@ -95,38 +95,6 @@ class _LoginScreenState extends State<LoginScreen>
           _buildBackground(),
           // ── Círculos decorativos ──
           _buildDecoCircles(),
-          // ── Tuerca Admin (esquina superior derecha) ──
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Tooltip(
-                  message: 'Acceso personal autorizado',
-                  child: GestureDetector(
-                    onTap: _openAdminLogin,
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppColors.bgCard.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.divider,
-                          width: 0.5,
-                        ),
-                      ),
-                      child: const Icon(
-                        CupertinoIcons.settings,
-                        color: AppColors.textTertiary,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
           // ── Contenido principal ──
           SafeArea(
             child: Center(
@@ -162,6 +130,38 @@ class _LoginScreenState extends State<LoginScreen>
                           _buildFooter(),
                           const SizedBox(height: 20),
                         ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Tuerca Admin
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Tooltip(
+                  message: 'Acceso personal autorizado',
+                  child: GestureDetector(
+                    onTap: _openAdminLogin,
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCard.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.divider,
+                          width: 0.5,
+                        ),
+                      ),
+                      child: const Icon(
+                        CupertinoIcons.settings,
+                        color: AppColors.textTertiary,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -253,23 +253,27 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ),
             ClipOval(
-              child: Positioned.fill(
-                child: Transform.translate(
-                  offset: Offset(_shineAnim.value * 200, 0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [
-                        Colors.transparent,
-                        Colors.white.withValues(alpha: 0.16),
-                        Colors.transparent,
-                      ], stops: const [
-                        0,
-                        0.5,
-                        1,
-                      ]),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Transform.translate(
+                      offset: Offset(_shineAnim.value * 200, 0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [
+                            Colors.transparent,
+                            Colors.white.withValues(alpha: 0.16),
+                            Colors.transparent,
+                          ], stops: const [
+                            0,
+                            0.5,
+                            1,
+                          ]),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
