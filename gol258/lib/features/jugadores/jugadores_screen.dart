@@ -199,16 +199,82 @@ class _JugadorFormSheetState extends State<_JugadorFormSheet> {
     super.dispose();
   }
 
+  // Dominios de correo permitidos
+  static const _dominiosPermitidos = [
+    '@gmail.com',
+    '@hotmail.com',
+    '@yahoo.com',
+    '@cbtis258.edu.mx',
+  ];
+
+  String? _validarCorreo(String correo) {
+    if (correo.isEmpty) return null; // vacío = autogenerar
+    if (correo.length > 254) {
+      return 'El correo no puede superar los 254 caracteres.';
+    }
+    if (!correo.contains('@')) {
+      return 'El correo debe contener @.';
+    }
+    final partes = correo.split('@');
+    if (partes.length != 2 || partes[0].isEmpty || partes[1].isEmpty) {
+      return 'Formato de correo inválido.';
+    }
+    final dominioAceptado = _dominiosPermitidos.any(
+      (d) => correo.toLowerCase().endsWith(d),
+    );
+    if (!dominioAceptado) {
+      return 'Solo se permiten correos:\n@gmail.com  @hotmail.com\n@yahoo.com  @cbtis258.edu.mx';
+    }
+    // Validar que el usuario antes del @ no esté vacío
+    final usuario = partes[0];
+    if (usuario.length < 2) {
+      return 'El nombre de usuario del correo es demasiado corto.';
+    }
+    return null; // válido
+  }
+
+  String? _validarContrasena(String pass) {
+    if (pass.isEmpty) return null; // vacío = autogenerar
+    if (pass.length < 6) {
+      return 'La contraseña debe tener al menos 6 caracteres.';
+    }
+    if (pass.length > 30) {
+      return 'La contraseña no puede superar los 30 caracteres.';
+    }
+    return null;
+  }
+
   Future<void> _save() async {
     setState(() => _errorMsg = null);
 
+    // Validar nombre
     if (_nombreCtrl.text.trim().isEmpty) {
       setState(() => _errorMsg = 'El nombre del jugador es obligatorio.');
       return;
     }
+    if (_nombreCtrl.text.trim().length > 60) {
+      setState(() => _errorMsg = 'El nombre no puede superar los 60 caracteres.');
+      return;
+    }
+
+    // Validar equipo
     if (_equipoId == null) {
       setState(() => _errorMsg = 'Debes seleccionar un equipo.');
       return;
+    }
+
+    // Validar credenciales solo al crear
+    if (widget.jugador == null) {
+      final emailError = _validarCorreo(_emailCtrl.text.trim());
+      if (emailError != null) {
+        setState(() => _errorMsg = emailError);
+        return;
+      }
+      final passError = _validarContrasena(_passCtrl.text.trim());
+      if (passError != null) {
+        setState(() => _errorMsg = passError);
+        return;
+      }
     }
 
     setState(() => _saving = true);
@@ -237,8 +303,8 @@ class _JugadorFormSheetState extends State<_JugadorFormSheet> {
         // Crear nuevo jugador con credenciales opcionales
         final creds = await context.read<JugadoresProvider>().crearJugador(
           data,
-          correoPersonalizado: _emailCtrl.text,
-          contrasenaPersonalizada: _passCtrl.text,
+          correoPersonalizado: _emailCtrl.text.trim(),
+          contrasenaPersonalizada: _passCtrl.text.trim(),
         );
         if (mounted) {
           if (creds != null) {
@@ -426,10 +492,12 @@ class _JugadorFormSheetState extends State<_JugadorFormSheet> {
             const SizedBox(height: 8),
             TextField(
               controller: _nombreCtrl,
+              maxLength: 60,
               style: GoogleFonts.inter(color: AppColors.textPrimary),
               decoration: const InputDecoration(
                   hintText: 'Nombre completo',
-                  prefixIcon: Icon(Icons.person_outline, size: 18)),
+                  prefixIcon: Icon(Icons.person_outline, size: 18),
+                  counterText: ''),
             ),
             const SizedBox(height: 16),
 
@@ -559,11 +627,15 @@ class _JugadorFormSheetState extends State<_JugadorFormSheet> {
                   TextField(
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
+                    maxLength: 254,
                     style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 13),
                     decoration: const InputDecoration(
-                      hintText: 'correo@ejemplo.com',
+                      hintText: 'usuario@gmail.com / @hotmail.com / @yahoo.com / @cbtis258.edu.mx',
                       prefixIcon: Icon(Icons.email_outlined, size: 16),
                       isDense: true,
+                      counterText: '',
+                      helperText: 'Solo: @gmail.com · @hotmail.com · @yahoo.com · @cbtis258.edu.mx',
+                      helperStyle: TextStyle(color: AppColors.textSecondary, fontSize: 10),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -576,11 +648,15 @@ class _JugadorFormSheetState extends State<_JugadorFormSheet> {
                   const SizedBox(height: 6),
                   TextField(
                     controller: _passCtrl,
+                    maxLength: 30,
                     style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 13),
                     decoration: const InputDecoration(
-                      hintText: 'Mínimo 6 caracteres',
+                      hintText: 'Entre 6 y 30 caracteres',
                       prefixIcon: Icon(Icons.lock_outline, size: 16),
                       isDense: true,
+                      counterText: '',
+                      helperText: 'Mínimo 6 · Máximo 30 caracteres',
+                      helperStyle: TextStyle(color: AppColors.textSecondary, fontSize: 10),
                     ),
                   ),
                 ]),

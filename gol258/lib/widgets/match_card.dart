@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme.dart';
 import '../../models/partido.dart';
 import '../features/highlights/highlights_screen.dart';
+import '../features/partidos/partido_detalle_screen.dart';
 
 
 class MatchCard extends StatefulWidget {
@@ -62,6 +63,11 @@ class _MatchCardState extends State<MatchCard>
         onTapDown: (_) => _pressCtrl.forward(),
         onTapUp: (_) => _pressCtrl.reverse(),
         onTapCancel: () => _pressCtrl.reverse(),
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => PartidoDetalleScreen(partido: widget.partido),
+          ));
+        },
         child: AnimatedScale(
           scale: _isHovered ? 1.02 : 1.0,
           duration: const Duration(milliseconds: 200),
@@ -349,16 +355,35 @@ class _MatchCardState extends State<MatchCard>
           ] else
             const Spacer(),
           if (hasDetails) ...[
-            Text(
-              'VER DETALLES →',
-              style: GoogleFonts.inter(
-                color: AppColors.gold,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => PartidoDetalleScreen(partido: widget.partido),
+                ));
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.bgCardLight,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.gold.withOpacity(0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(CupertinoIcons.sportscourt_fill,
+                        color: AppColors.gold, size: 10),
+                    const SizedBox(width: 4),
+                    Text('Detalles',
+                        style: GoogleFonts.inter(
+                            color: AppColors.gold,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700)),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
           ],
           GestureDetector(
             onTap: () {

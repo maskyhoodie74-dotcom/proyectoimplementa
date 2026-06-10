@@ -36,7 +36,11 @@ class _EquiposScreenState extends State<EquiposScreen> {
 
     _focusNode.addListener(() {
       if (!_focusNode.hasFocus) {
-        setState(() => _showSuggestions = false);
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted && !_focusNode.hasFocus) {
+            setState(() => _showSuggestions = false);
+          }
+        });
       } else if (_query.isNotEmpty) {
         setState(() => _showSuggestions = true);
       }

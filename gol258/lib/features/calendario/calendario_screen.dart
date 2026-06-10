@@ -257,6 +257,7 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
   final _lugarCtrl = TextEditingController();
   String _categoria = 'Varonil';
   String _tipoTorneo = 'Fase Regular';
+  String? _errorMsg;
   bool _saving = false;
   final _categorias = ['Varonil', 'Femenil', 'Mixto', 'Juvenil', 'División I'];
   final _tiposTorneo = ['Fase Regular', 'Liguilla', 'Amistoso', 'Final'];
@@ -268,12 +269,37 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
   }
 
   Future<void> _save() async {
-    if (_localId == null || _visitanteId == null) return;
-    if (_localId == _visitanteId) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('El equipo local y visitante deben ser diferentes')));
+    setState(() => _errorMsg = null);
+
+    if (_localId == null || _visitanteId == null) {
+      setState(() => _errorMsg = 'Debes seleccionar ambos equipos.');
       return;
     }
+    if (_localId == _visitanteId) {
+      setState(() => _errorMsg = 'El equipo local y visitante deben ser diferentes.');
+      return;
+    }
+
+    // Validar rango de fecha: hoy hasta 6 meses
+    final hoy = DateTime.now();
+    final limite = DateTime(hoy.year, hoy.month + 6, hoy.day);
+    final fechaSinHora = DateTime(_fecha.year, _fecha.month, _fecha.day);
+    final hoySinHora = DateTime(hoy.year, hoy.month, hoy.day);
+    if (fechaSinHora.isBefore(hoySinHora)) {
+      setState(() => _errorMsg = 'La fecha no puede ser anterior a hoy.');
+      return;
+    }
+    if (fechaSinHora.isAfter(limite)) {
+      setState(() => _errorMsg = 'Solo se pueden programar partidos con hasta 6 meses de anticipación.');
+      return;
+    }
+
+    // Validar lugar
+    if (_lugarCtrl.text.trim().length > 80) {
+      setState(() => _errorMsg = 'El lugar no puede superar los 80 caracteres.');
+      return;
+    }
+
     setState(() => _saving = true);
     final data = {
       'equipo_local_id': _localId,
@@ -312,7 +338,49 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
             const SizedBox(height: 20),
             Text('PROGRAMAR PARTIDO',
                 style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+            // Info límite de fecha
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.maroonDark.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.gold.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: AppColors.gold, size: 14),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Solo se permiten fechas desde hoy hasta 6 meses en adelante.',
+                      style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Error message
+            if (_errorMsg != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.error.withOpacity(0.4)),
+                ),
+                child: Row(children: [
+                  const Icon(Icons.error_outline, color: AppColors.error, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(_errorMsg!,
+                        style: GoogleFonts.inter(color: AppColors.error, fontSize: 12)),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 12),
+            ],
             _dropLabel('EQUIPO LOCAL'),
             const SizedBox(height: 8),
             _equipoDropdown(_localId, equipos, (v) => setState(() => _localId = v)),
@@ -331,7 +399,11 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
                       context: context,
                       initialDate: _fecha,
                       firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                      lastDate: DateTime(
+                        DateTime.now().year,
+                        DateTime.now().month + 6,
+                        DateTime.now().day,
+                      ),
                       builder: (ctx, child) => Theme(
                         data: ThemeData.dark().copyWith(
                           colorScheme: const ColorScheme.dark(primary: AppColors.gold),
@@ -382,9 +454,16 @@ class _PartidoFormSheetState extends State<_PartidoFormSheet> {
             const SizedBox(height: 16),
             _dropLabel('LUGAR'),
             const SizedBox(height: 8),
-            TextField(controller: _lugarCtrl,
+            TextField(
+                controller: _lugarCtrl,
+                maxLength: 80,
                 style: GoogleFonts.inter(color: AppColors.textPrimary),
-                decoration: const InputDecoration(hintText: 'Cancha principal')),
+                decoration: const InputDecoration(
+                  hintText: 'Cancha principal',
+                  counterText: '',
+                  helperText: 'Máximo 80 caracteres',
+                  helperStyle: TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                )),
             const SizedBox(height: 16),
             Row(children: [
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
