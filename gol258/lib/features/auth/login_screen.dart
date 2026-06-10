@@ -138,32 +138,29 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
           // Tuerca Admin
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Tooltip(
-                  message: 'Acceso personal autorizado',
-                  child: GestureDetector(
-                    onTap: _openAdminLogin,
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppColors.bgCard.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.divider,
-                          width: 0.5,
-                        ),
-                      ),
-                      child: const Icon(
-                        CupertinoIcons.settings,
-                        color: AppColors.textTertiary,
-                        size: 20,
-                      ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: 16,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: _openAdminLogin,
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.divider,
+                      width: 0.5,
                     ),
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.settings,
+                    color: AppColors.textTertiary,
+                    size: 20,
                   ),
                 ),
               ),
