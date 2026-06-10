@@ -84,6 +84,15 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  void _openVerLigaOptions() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _VerLigaOptionsSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
@@ -130,14 +139,8 @@ class _LoginScreenState extends State<LoginScreen>
                           // Brand
                           _buildBrandText(),
                           const SizedBox(height: 48),
-                          // Botón principal — Continuar como espectador
+                          // Botón principal — Opciones de liga
                           _buildEspectadorHero(),
-                          const SizedBox(height: 16),
-                          // Crear cuenta
-                          _buildCrearCuentaBtn(),
-                          const SizedBox(height: 12),
-                          // Ya tengo cuenta (jugador)
-                          _buildJugadorLoginBtn(),
                           const SizedBox(height: 40),
                           _buildFooter(),
                           const SizedBox(height: 20),
@@ -294,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen>
   // ── BOTONES PRINCIPALES ──────────────────────────────────────────
   Widget _buildEspectadorHero() {
     return GestureDetector(
-      onTap: _enterAsEspectador,
+      onTap: _openVerLigaOptions,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 20),
@@ -318,7 +321,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             const SizedBox(height: 4),
             Text(
-              'Entrar como espectador',
+              'Accede para ver toda la acción',
               style: GoogleFonts.inter(
                 color: AppColors.bgDark.withValues(alpha: 0.65),
                 fontSize: 12,
@@ -1064,6 +1067,156 @@ class _ActionBtn extends StatelessWidget {
                     ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── SHEET: OPCIONES VER LIGA ───────────────────────────────────────────────
+class _VerLigaOptionsSheet extends StatelessWidget {
+  const _VerLigaOptionsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.of(context).viewInsets;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: viewInsets.bottom),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.bgSecondary.withValues(alpha: 0.95),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(color: AppColors.divider, width: 0.5),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.divider,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'OPCIONES DE ACCESO',
+                  style: GoogleFonts.inter(
+                    color: AppColors.gold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Botón Iniciar Sesión
+                _buildOptionBtn(
+                  icon: CupertinoIcons.person_solid,
+                  label: 'Iniciar Sesión',
+                  sub: 'Ya tengo una cuenta registrada',
+                  onTap: () {
+                    Navigator.pop(context);
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const _JugadorLoginSheet(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                // Botón Crear Cuenta
+                _buildOptionBtn(
+                  icon: CupertinoIcons.person_crop_circle_badge_plus,
+                  label: 'Crear Cuenta',
+                  sub: 'Regístrate para guardar quinielas',
+                  onTap: () {
+                    Navigator.pop(context);
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const _RegistroSheet(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                // Botón Invitado
+                _buildOptionBtn(
+                  icon: CupertinoIcons.eye,
+                  label: 'Continuar como Invitado',
+                  sub: 'Solo lectura (No podrás apostar)',
+                  color: AppColors.textSecondary,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.read<AuthProvider>().enterAsEspectador();
+                    context.go('/home');
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionBtn({
+    required IconData icon,
+    required String label,
+    required String sub,
+    required VoidCallback onTap,
+    Color color = AppColors.gold,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    sub,
+                    style: GoogleFonts.inter(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(CupertinoIcons.chevron_right, color: color.withValues(alpha: 0.5), size: 16),
+          ],
         ),
       ),
     );
