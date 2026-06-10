@@ -371,11 +371,11 @@ class _LoginScreenState extends State<LoginScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(CupertinoIcons.sportscourt_fill,
+            const Icon(CupertinoIcons.person_solid,
                 color: AppColors.textSecondary, size: 14),
             const SizedBox(width: 7),
             Text(
-              'Ya tengo cuenta de jugador',
+              'Ya tengo cuenta (Iniciar sesión)',
               style: GoogleFonts.inter(
                 color: AppColors.textSecondary,
                 fontSize: 13,
@@ -881,19 +881,19 @@ class _JugadorLoginSheetState extends State<_JugadorLoginSheet> {
                         gradient: AppColors.maroonGradient,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(CupertinoIcons.sportscourt_fill,
+                      child: const Icon(CupertinoIcons.person_solid,
                           color: AppColors.gold, size: 22),
                     ),
                     const SizedBox(width: 14),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Acceso Jugador',
+                        Text('Iniciar Sesión',
                             style: GoogleFonts.inter(
                                 color: AppColors.textPrimary,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800)),
-                        Text('Ingresa con tus credenciales',
+                        Text('Ingresa con tu correo y contraseña',
                             style: GoogleFonts.inter(
                                 color: AppColors.textSecondary, fontSize: 12)),
                       ],
