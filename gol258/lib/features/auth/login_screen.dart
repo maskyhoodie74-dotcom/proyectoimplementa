@@ -89,6 +89,18 @@ class _LoginScreenState extends State<LoginScreen>
     final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openAdminLogin,
+        backgroundColor: AppColors.bgCard.withValues(alpha: 0.6),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.divider, width: 0.5),
+        ),
+        tooltip: 'Acceso personal autorizado',
+        child: const Icon(CupertinoIcons.settings, color: AppColors.textTertiary, size: 24),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Stack(
         children: [
           // ── Fondo degradado ──
@@ -132,35 +144,6 @@ class _LoginScreenState extends State<LoginScreen>
                         ],
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Tuerca Admin
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            right: 16,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: _openAdminLogin,
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: AppColors.bgCard.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppColors.divider,
-                      width: 0.5,
-                    ),
-                  ),
-                  child: const Icon(
-                    CupertinoIcons.settings,
-                    color: AppColors.textTertiary,
-                    size: 20,
                   ),
                 ),
               ),

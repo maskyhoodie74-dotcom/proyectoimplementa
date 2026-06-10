@@ -149,8 +149,10 @@ class _PartidoDetalleScreenState extends State<PartidoDetalleScreen>
     final ok = await context.read<QuinielasProvider>().guardarQuiniela(q);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ok ? '✅ ¡Pronóstico guardado!' : '❌ Error al guardar'),
-        backgroundColor: ok ? null : Colors.red,
+        content: Text(ok
+            ? '✅ ¡Apuesta realizada!\nTu pronóstico: ${widget.partido.equipoLocalNombre} $locText - $visText ${widget.partido.equipoVisitanteNombre}'
+            : '❌ Error al guardar'),
+        backgroundColor: ok ? Colors.green.shade800 : Colors.red,
       ));
     }
     if (mounted) setState(() => _guardandoQuiniela = false);
