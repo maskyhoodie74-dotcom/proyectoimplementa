@@ -99,15 +99,6 @@ class _EquiposScreenState extends State<EquiposScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
-      floatingActionButton: isAdmin
-          ? FloatingActionButton(
-              backgroundColor: AppColors.gold,
-              foregroundColor: AppColors.bgDark,
-              tooltip: 'Agregar Equipo',
-              onPressed: () => _showForm(),
-              child: const Icon(Icons.add),
-            )
-          : null,
       body: GestureDetector(
         // Cerrar sugerencias al tocar fuera
         onTap: () {
@@ -123,14 +114,43 @@ class _EquiposScreenState extends State<EquiposScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'BUSCAR EQUIPO',
-                    style: GoogleFonts.inter(
-                      color: AppColors.gold,
-                      fontSize: 11,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'BUSCAR EQUIPO',
+                          style: GoogleFonts.inter(
+                            color: AppColors.gold,
+                            fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5,
-                    ),
+                          ),
+                        ),
+                      ),
+                      if (isAdmin)
+                        GestureDetector(
+                          onTap: () => _showForm(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              gradient: AppColors.goldGradient,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.edit, color: AppColors.bgDark, size: 14),
+                                const SizedBox(width: 4),
+                                Text('Nuevo',
+                                    style: GoogleFonts.inter(
+                                        color: AppColors.bgDark,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700)),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   TextField(

@@ -165,6 +165,59 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Registra una cuenta nueva de espectador en la tabla "usuario"
+  Future<bool> registrarEspectador({
+    required String nombre,
+    required String correo,
+    required String contrasena,
+  }) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      // Verificar si el correo ya está registrado
+      final existe = await supabase
+          .from('usuario')
+          .select('id')
+          .eq('correo', correo.trim().toLowerCase())
+          .maybeSingle();
+      if (existe != null) {
+        _error = 'Este correo ya está registrado';
+        _loading = false;
+        notifyListeners();
+        return false;
+      }
+
+      final response = await supabase.from('usuario').insert({
+        'nombre': nombre.trim(),
+        'correo': correo.trim().toLowerCase(),
+        'contrasena': contrasena.trim(),
+      }).select('id, nombre').single();
+
+      _role = AuthRole.usuario;
+      _userName = response['nombre'] ?? nombre;
+      _usuarioId = response['id'].toString();
+      _equipoId = null;
+      _jugadorId = null;
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_role', 'usuario');
+      await prefs.setString('auth_name', _userName);
+      await prefs.setString('auth_uid', _usuarioId!);
+      await prefs.remove('auth_equipo_id');
+      await prefs.remove('auth_jugador_id');
+
+      _loading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Error al crear cuenta: ${e.toString()}';
+      _loading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     _role = AuthRole.none;
     _userName = '';

@@ -7,6 +7,9 @@ import 'package:provider/provider.dart';
 import '../auth/auth_provider.dart';
 import '../../core/theme.dart';
 
+// ─── PANTALLA PRINCIPAL ───────────────────────────────────────────────────────
+// Ahora la pantalla de inicio muestra una bienvenida para espectadores.
+// El login de admin está oculto en el icono de tuerca (⚙️) en la esquina.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,14 +19,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
-  final _usuarioCtrl = TextEditingController();
-  final _claveCtrl = TextEditingController();
-  final _correoCtrl = TextEditingController();
-  final _claveJugadorCtrl = TextEditingController();
-  bool _obscure = true;
-  bool _obscureJugador = true;
-  int _tabIndex = 0;
-
   late AnimationController _fadeCtrl;
   late AnimationController _shineCtrl;
   late Animation<double> _fadeAnim;
@@ -34,19 +29,18 @@ class _LoginScreenState extends State<LoginScreen>
   void initState() {
     super.initState();
     _fadeCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1000));
+        vsync: this, duration: const Duration(milliseconds: 900));
     _shineCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 2500));
 
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
-    _slideAnim = Tween<Offset>(
-            begin: const Offset(0, 0.12), end: Offset.zero)
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero)
         .animate(CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut));
     _shineAnim = Tween<double>(begin: -1.0, end: 2.0)
         .animate(CurvedAnimation(parent: _shineCtrl, curve: Curves.easeInOut));
 
     _fadeCtrl.forward();
-    Future.delayed(const Duration(milliseconds: 600), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) _shineCtrl.repeat(period: const Duration(seconds: 4));
     });
   }
@@ -55,31 +49,7 @@ class _LoginScreenState extends State<LoginScreen>
   void dispose() {
     _fadeCtrl.dispose();
     _shineCtrl.dispose();
-    _usuarioCtrl.dispose();
-    _claveCtrl.dispose();
-    _correoCtrl.dispose();
-    _claveJugadorCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _loginAdmin() async {
-    final auth = context.read<AuthProvider>();
-    final ok =
-        await auth.loginAdmin(_usuarioCtrl.text.trim(), _claveCtrl.text.trim());
-    if (ok && mounted) context.go('/admin');
-  }
-
-  Future<void> _loginJugador() async {
-    final auth = context.read<AuthProvider>();
-    final ok = await auth.loginUsuario(
-        _correoCtrl.text.trim(), _claveJugadorCtrl.text.trim());
-    if (ok && mounted) {
-      if (auth.jugadorId != null) {
-        context.go('/jugador-dashboard');
-      } else {
-        context.go('/home');
-      }
-    }
   }
 
   void _enterAsEspectador() {
@@ -87,20 +57,77 @@ class _LoginScreenState extends State<LoginScreen>
     context.go('/home');
   }
 
+  void _openAdminLogin() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _AdminLoginSheet(),
+    );
+  }
+
+  void _openRegistro() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _RegistroSheet(),
+    );
+  }
+
+  void _openJugadorLogin() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _JugadorLoginSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    final screenSize = MediaQuery.of(context).size;
-    final isMobile = screenSize.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
       body: Stack(
         children: [
-          // Background
+          // ── Fondo degradado ──
           _buildBackground(),
-          // Decorative elements
-          _buildDecoElements(isMobile),
-          // Content
+          // ── Círculos decorativos ──
+          _buildDecoCircles(),
+          // ── Tuerca Admin (esquina superior derecha) ──
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Tooltip(
+                  message: 'Acceso personal autorizado',
+                  child: GestureDetector(
+                    onTap: _openAdminLogin,
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCard.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.divider,
+                          width: 0.5,
+                        ),
+                      ),
+                      child: const Icon(
+                        CupertinoIcons.settings,
+                        color: AppColors.textTertiary,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // ── Contenido principal ──
           SafeArea(
             child: Center(
               child: ConstrainedBox(
@@ -116,17 +143,22 @@ class _LoginScreenState extends State<LoginScreen>
                       position: _slideAnim,
                       child: Column(
                         children: [
-                          SizedBox(height: isMobile ? 20 : 40),
+                          SizedBox(height: isMobile ? 32 : 52),
+                          // Logo
                           _buildLogo(),
-                          const SizedBox(height: 24),
-                          _buildBrandText(),
-                          const SizedBox(height: 36),
-                          _buildTabSelector(),
                           const SizedBox(height: 20),
-                          _buildLoginCard(auth),
+                          // Brand
+                          _buildBrandText(),
+                          const SizedBox(height: 48),
+                          // Botón principal — Continuar como espectador
+                          _buildEspectadorHero(),
                           const SizedBox(height: 16),
-                          _buildEspectadorButton(),
-                          const SizedBox(height: 32),
+                          // Crear cuenta
+                          _buildCrearCuentaBtn(),
+                          const SizedBox(height: 12),
+                          // Ya tengo cuenta (jugador)
+                          _buildJugadorLoginBtn(),
+                          const SizedBox(height: 40),
                           _buildFooter(),
                           const SizedBox(height: 20),
                         ],
@@ -142,45 +174,38 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  // ── FONDO ──────────────────────────────────────────
   Widget _buildBackground() {
     return Container(
       decoration: const BoxDecoration(
         gradient: RadialGradient(
-          center: Alignment(-0.7, -0.8),
+          center: Alignment(-0.5, -0.6),
           radius: 1.8,
-          colors: [
-            Color(0xFF3A0B17),
-            Color(0xFF150208),
-            Color(0xFF000000),
-          ],
+          colors: [Color(0xFF3A0B17), Color(0xFF150208), Color(0xFF000000)],
           stops: [0.0, 0.4, 1.0],
         ),
       ),
     );
   }
 
-  Widget _buildDecoElements(bool isMobile) {
+  Widget _buildDecoCircles() {
     return Stack(
       children: [
-        // Gold circle top-right
         Positioned(
           top: -80,
           right: -80,
           child: Container(
-            width: 250,
-            height: 250,
+            width: 260,
+            height: 260,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  AppColors.gold.withOpacity(0.15),
-                  AppColors.gold.withOpacity(0.0),
-                ],
-              ),
+              gradient: RadialGradient(colors: [
+                AppColors.gold.withValues(alpha: 0.12),
+                Colors.transparent,
+              ]),
             ),
           ),
         ),
-        // Maroon circle bottom-left
         Positioned(
           bottom: -100,
           left: -60,
@@ -189,12 +214,10 @@ class _LoginScreenState extends State<LoginScreen>
             height: 280,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  AppColors.maroon.withOpacity(0.25),
-                  Colors.transparent,
-                ],
-              ),
+              gradient: RadialGradient(colors: [
+                AppColors.maroon.withValues(alpha: 0.22),
+                Colors.transparent,
+              ]),
             ),
           ),
         ),
@@ -202,63 +225,56 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  // ── LOGO ──────────────────────────────────────────
   Widget _buildLogo() {
     return AnimatedBuilder(
       animation: _shineAnim,
-      builder: (context, child) {
-        return Container(
-          width: 130,
-          height: 130,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.gold.withOpacity(0.35),
-                blurRadius: 30,
-                spreadRadius: 2,
+      builder: (_, __) => Container(
+        width: 120,
+        height: 120,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.gold.withValues(alpha: 0.3),
+              blurRadius: 32,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Image.asset(
+                'assets/images/logo_no_bg.png',
+                width: 120,
+                height: 120,
+                fit: BoxFit.contain,
               ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: Image.asset(
-                  'assets/images/logo_no_bg.png',
-                  width: 130,
-                  height: 130,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              // Shine effect
-              ClipOval(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Transform.translate(
-                        offset: Offset(_shineAnim.value * 200, 0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.transparent,
-                                Colors.white.withOpacity(0.18),
-                                Colors.transparent,
-                              ],
-                              stops: const [0.0, 0.5, 1.0],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                          ),
-                        ),
-                      ),
+            ),
+            ClipOval(
+              child: Positioned.fill(
+                child: Transform.translate(
+                  offset: Offset(_shineAnim.value * 200, 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [
+                        Colors.transparent,
+                        Colors.white.withValues(alpha: 0.16),
+                        Colors.transparent,
+                      ], stops: const [
+                        0,
+                        0.5,
+                        1,
+                      ]),
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -266,12 +282,12 @@ class _LoginScreenState extends State<LoginScreen>
     return Column(
       children: [
         ShaderMask(
-          shaderCallback: (bounds) => AppColors.goldGradient.createShader(bounds),
+          shaderCallback: (b) => AppColors.goldGradient.createShader(b),
           child: Text(
             'CAMPEONATO GOL 258',
             style: GoogleFonts.inter(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.5,
             ),
@@ -282,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen>
           'Sistema Oficial • CBTis 258',
           style: GoogleFonts.inter(
             color: AppColors.textSecondary,
-            fontSize: 13,
+            fontSize: 12,
             letterSpacing: 1,
             fontWeight: FontWeight.w500,
           ),
@@ -291,291 +307,745 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildTabSelector() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider, width: 0.5),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Row(
-        children: [
-          _buildTab(0, CupertinoIcons.shield_fill, 'ADMIN'),
-          _buildTab(1, CupertinoIcons.sportscourt_fill, 'JUGADOR'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTab(int index, IconData icon, String label) {
-    final isSelected = _tabIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _tabIndex = index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            gradient: isSelected ? AppColors.goldGradient : null,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: isSelected ? AppColors.goldGlowSubtle : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon,
-                  color: isSelected ? AppColors.bgDark : AppColors.textSecondary,
-                  size: 16),
-              const SizedBox(width: 7),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  color: isSelected ? AppColors.bgDark : AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
-                ),
+  // ── BOTONES PRINCIPALES ──────────────────────────────────────────
+  Widget _buildEspectadorHero() {
+    return GestureDetector(
+      onTap: _enterAsEspectador,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          gradient: AppColors.goldGradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.goldGlow,
+        ),
+        child: Column(
+          children: [
+            const Text('⚽', style: TextStyle(fontSize: 36)),
+            const SizedBox(height: 10),
+            Text(
+              'VER LIGA',
+              style: GoogleFonts.inter(
+                color: AppColors.bgDark,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Entrar como espectador',
+              style: GoogleFonts.inter(
+                color: AppColors.bgDark.withValues(alpha: 0.65),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildLoginCard(AuthProvider auth) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.bgCard.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.gold.withOpacity(0.2), width: 0.5),
-            boxShadow: AppColors.glassShadow,
-          ),
-          padding: const EdgeInsets.all(28),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: _tabIndex == 0
-                ? _buildAdminForm(auth)
-                : _buildJugadorForm(auth),
-          ),
+  Widget _buildCrearCuentaBtn() {
+    return GestureDetector(
+      onTap: _openRegistro,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
         ),
-      ),
-    );
-  }
-
-  Widget _buildAdminForm(AuthProvider auth) {
-    return Column(
-      key: const ValueKey('admin'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildFormHeader(
-          icon: CupertinoIcons.shield_fill,
-          title: 'Personal\nAutorizado',
-          subtitle: 'Credenciales de administrador',
-        ),
-        const SizedBox(height: 24),
-        _buildFieldLabel('ID / USUARIO'),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _usuarioCtrl,
-          style: GoogleFonts.inter(color: AppColors.textPrimary),
-          decoration: const InputDecoration(
-            hintText: 'Ingrese ID',
-            prefixIcon: Icon(CupertinoIcons.person, size: 18),
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildFieldLabel('CLAVE DE SEGURIDAD'),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _claveCtrl,
-          obscureText: _obscure,
-          style: GoogleFonts.inter(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: '••••••••',
-            prefixIcon: const Icon(CupertinoIcons.lock, size: 18),
-            suffixIcon: _buildObscureButton(_obscure,
-                () => setState(() => _obscure = !_obscure)),
-          ),
-          onSubmitted: (_) => _loginAdmin(),
-        ),
-        _buildErrorWidget(auth),
-        const SizedBox(height: 24),
-        _buildActionButton(auth.loading, 'AUTENTICAR', _loginAdmin),
-      ],
-    );
-  }
-
-  Widget _buildJugadorForm(AuthProvider auth) {
-    return Column(
-      key: const ValueKey('jugador'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildFormHeader(
-          icon: CupertinoIcons.sportscourt_fill,
-          title: 'Acceso\nJugador',
-          subtitle: 'Correo y contraseña de jugador',
-        ),
-        const SizedBox(height: 24),
-        _buildFieldLabel('CORREO ELECTRÓNICO'),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _correoCtrl,
-          keyboardType: TextInputType.emailAddress,
-          style: GoogleFonts.inter(color: AppColors.textPrimary),
-          decoration: const InputDecoration(
-            hintText: 'jugador@gol258.com',
-            prefixIcon: Icon(CupertinoIcons.mail, size: 18),
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildFieldLabel('CONTRASEÑA'),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _claveJugadorCtrl,
-          obscureText: _obscureJugador,
-          style: GoogleFonts.inter(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: '••••••••',
-            prefixIcon: const Icon(CupertinoIcons.lock, size: 18),
-            suffixIcon: _buildObscureButton(_obscureJugador,
-                () => setState(() => _obscureJugador = !_obscureJugador)),
-          ),
-          onSubmitted: (_) => _loginJugador(),
-        ),
-        _buildErrorWidget(auth),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.maroonDeep.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.gold.withOpacity(0.2), width: 0.5),
-          ),
-          child: Row(children: [
-            const Icon(CupertinoIcons.info_circle_fill,
-                color: AppColors.gold, size: 15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(CupertinoIcons.person_crop_circle_badge_plus,
+                color: AppColors.gold, size: 20),
             const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'El coordinador te proporcionará tus credenciales al registrarte.',
-                style: GoogleFonts.inter(
-                    color: AppColors.textSecondary, fontSize: 12, height: 1.4),
+            Text(
+              'CREAR CUENTA',
+              style: GoogleFonts.inter(
+                color: AppColors.gold,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1,
               ),
             ),
-          ]),
+          ],
         ),
-        const SizedBox(height: 24),
-        _buildActionButton(auth.loading, 'INGRESAR', _loginJugador),
-      ],
+      ),
     );
   }
 
-  Widget _buildFormHeader({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
-            gradient: AppColors.maroonGradient,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.5),
-          ),
-          child: Icon(icon, color: AppColors.gold, size: 22),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.inter(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.5,
-                  height: 1.1,
-                ),
+  Widget _buildJugadorLoginBtn() {
+    return GestureDetector(
+      onTap: _openJugadorLogin,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(CupertinoIcons.sportscourt_fill,
+                color: AppColors.textSecondary, size: 14),
+            const SizedBox(width: 7),
+            Text(
+              'Ya tengo cuenta de jugador',
+              style: GoogleFonts.inter(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.textSecondary,
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: GoogleFonts.inter(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFooter() {
     return Text(
-      label,
+      'LIGA GOL 258 • COBRAS • VER 1.0',
       style: GoogleFonts.inter(
-        color: AppColors.gold,
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.5,
+        color: AppColors.textTertiary,
+        fontSize: 10,
+        letterSpacing: 2,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
+}
 
-  Widget _buildObscureButton(bool obscure, VoidCallback onTap) {
-    return IconButton(
-      icon: Icon(
-        obscure ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
-        size: 18,
-        color: AppColors.textSecondary,
-      ),
-      onPressed: onTap,
-    );
+// ─── SHEET: LOGIN ADMIN ───────────────────────────────────────────────────────
+class _AdminLoginSheet extends StatefulWidget {
+  const _AdminLoginSheet();
+
+  @override
+  State<_AdminLoginSheet> createState() => _AdminLoginSheetState();
+}
+
+class _AdminLoginSheetState extends State<_AdminLoginSheet> {
+  final _usuarioCtrl = TextEditingController();
+  final _claveCtrl = TextEditingController();
+  bool _obscure = true;
+
+  @override
+  void dispose() {
+    _usuarioCtrl.dispose();
+    _claveCtrl.dispose();
+    super.dispose();
   }
 
-  Widget _buildErrorWidget(AuthProvider auth) {
-    if (auth.error == null) return const SizedBox.shrink();
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppColors.error.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.error.withOpacity(0.4), width: 0.5),
-          ),
-          child: Row(children: [
-            const Icon(CupertinoIcons.xmark_circle_fill,
-                color: AppColors.error, size: 16),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(auth.error!,
-                  style: GoogleFonts.inter(
-                      color: AppColors.error, fontSize: 12, height: 1.4)),
+  Future<void> _login() async {
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.loginAdmin(
+        _usuarioCtrl.text.trim(), _claveCtrl.text.trim());
+    if (ok && mounted) {
+      Navigator.pop(context);
+      context.go('/admin');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final viewInsets = MediaQuery.of(context).viewInsets;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: viewInsets.bottom),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.bgSecondary.withValues(alpha: 0.95),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(color: AppColors.divider, width: 0.5),
             ),
-          ]),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.maroonGradient,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: AppColors.gold.withValues(alpha: 0.3),
+                            width: 0.5),
+                      ),
+                      child: const Icon(CupertinoIcons.shield_fill,
+                          color: AppColors.gold, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Personal Autorizado',
+                          style: GoogleFonts.inter(
+                            color: AppColors.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          'Acceso exclusivo para administradores',
+                          style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // Campo usuario
+                _sheetLabel('ID / USUARIO'),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _usuarioCtrl,
+                  style: GoogleFonts.inter(color: AppColors.textPrimary),
+                  decoration: const InputDecoration(
+                    hintText: 'Ingrese ID de administrador',
+                    prefixIcon: Icon(CupertinoIcons.person, size: 18),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _sheetLabel('CLAVE DE SEGURIDAD'),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _claveCtrl,
+                  obscureText: _obscure,
+                  style: GoogleFonts.inter(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: '••••••••',
+                    prefixIcon: const Icon(CupertinoIcons.lock, size: 18),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscure
+                            ? CupertinoIcons.eye_slash
+                            : CupertinoIcons.eye,
+                        size: 18,
+                        color: AppColors.textSecondary,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscure = !_obscure),
+                    ),
+                  ),
+                  onSubmitted: (_) => _login(),
+                ),
+                if (auth.error != null) ...[
+                  const SizedBox(height: 12),
+                  _ErrorBanner(message: auth.error!),
+                ],
+                const SizedBox(height: 24),
+                _ActionBtn(
+                  loading: auth.loading,
+                  label: 'AUTENTICAR',
+                  onTap: _login,
+                ),
+              ],
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildActionButton(bool loading, String label, VoidCallback onTap) {
+  Widget _sheetLabel(String text) => Text(
+        text,
+        style: GoogleFonts.inter(
+          color: AppColors.gold,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.5,
+        ),
+      );
+}
+
+// ─── SHEET: REGISTRO ESPECTADOR ───────────────────────────────────────────────
+class _RegistroSheet extends StatefulWidget {
+  const _RegistroSheet();
+
+  @override
+  State<_RegistroSheet> createState() => _RegistroSheetState();
+}
+
+class _RegistroSheetState extends State<_RegistroSheet> {
+  final _nombreCtrl = TextEditingController();
+  final _correoCtrl = TextEditingController();
+  final _claveCtrl = TextEditingController();
+  bool _obscure = true;
+  bool _loading = false;
+  String? _error;
+
+  static const _dominiosValidos = [
+    '@gmail.com', '@hotmail.com', '@yahoo.com', '@cbtis258.edu.mx'
+  ];
+
+  @override
+  void dispose() {
+    _nombreCtrl.dispose();
+    _correoCtrl.dispose();
+    _claveCtrl.dispose();
+    super.dispose();
+  }
+
+  bool _correoValido(String correo) {
+    return _dominiosValidos.any((d) => correo.toLowerCase().endsWith(d));
+  }
+
+  Future<void> _registrar() async {
+    final nombre = _nombreCtrl.text.trim();
+    final correo = _correoCtrl.text.trim();
+    final clave = _claveCtrl.text.trim();
+
+    if (nombre.isEmpty || correo.isEmpty || clave.isEmpty) {
+      setState(() => _error = 'Completa todos los campos');
+      return;
+    }
+    if (nombre.split(' ').length > 30) {
+      setState(() => _error = 'El nombre es demasiado largo');
+      return;
+    }
+    if (correo.length > 100 || correo.split(' ').length > 1) {
+      setState(() => _error = 'Correo no válido');
+      return;
+    }
+    if (!_correoValido(correo)) {
+      setState(() => _error =
+          'Solo se permiten correos @gmail.com, @hotmail.com, @yahoo.com o @cbtis258.edu.mx');
+      return;
+    }
+    if (clave.length < 6) {
+      setState(() => _error = 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (clave.length > 30) {
+      setState(() => _error = 'La contraseña no puede exceder 30 caracteres');
+      return;
+    }
+
+    setState(() { _loading = true; _error = null; });
+    final ok = await context
+        .read<AuthProvider>()
+        .registrarEspectador(nombre: nombre, correo: correo, contrasena: clave);
+    if (!mounted) return;
+    if (ok) {
+      Navigator.pop(context);
+      context.go('/home');
+    } else {
+      setState(() {
+        _error = context.read<AuthProvider>().error ?? 'Error al registrarse';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.of(context).viewInsets;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: viewInsets.bottom),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.bgSecondary.withValues(alpha: 0.95),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(color: AppColors.divider, width: 0.5),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.divider,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          gradient: AppColors.maroonGradient,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                            CupertinoIcons.person_crop_circle_badge_plus,
+                            color: AppColors.gold,
+                            size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Crear Cuenta',
+                            style: GoogleFonts.inter(
+                              color: AppColors.textPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            'Únete como espectador de la liga',
+                            style: GoogleFonts.inter(
+                                color: AppColors.textSecondary, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _label('NOMBRE COMPLETO'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _nombreCtrl,
+                    maxLength: 60,
+                    style: GoogleFonts.inter(color: AppColors.textPrimary),
+                    decoration: const InputDecoration(
+                      hintText: 'Tu nombre',
+                      prefixIcon: Icon(CupertinoIcons.person, size: 18),
+                      counterText: '',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _label('CORREO ELECTRÓNICO'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _correoCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    maxLength: 100,
+                    style: GoogleFonts.inter(color: AppColors.textPrimary),
+                    decoration: const InputDecoration(
+                      hintText: 'usuario@gmail.com',
+                      prefixIcon: Icon(CupertinoIcons.mail, size: 18),
+                      counterText: '',
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Solo: @gmail.com · @hotmail.com · @yahoo.com · @cbtis258.edu.mx',
+                    style: GoogleFonts.inter(
+                        color: AppColors.textTertiary, fontSize: 10),
+                  ),
+                  const SizedBox(height: 16),
+                  _label('CONTRASEÑA'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _claveCtrl,
+                    obscureText: _obscure,
+                    maxLength: 30,
+                    style: GoogleFonts.inter(color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: '6–30 caracteres',
+                      prefixIcon: const Icon(CupertinoIcons.lock, size: 18),
+                      counterText: '',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscure
+                              ? CupertinoIcons.eye_slash
+                              : CupertinoIcons.eye,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                    ),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    _ErrorBanner(message: _error!),
+                  ],
+                  const SizedBox(height: 24),
+                  _ActionBtn(
+                    loading: _loading,
+                    label: 'CREAR CUENTA',
+                    onTap: _registrar,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _label(String text) => Text(
+        text,
+        style: GoogleFonts.inter(
+          color: AppColors.gold,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.5,
+        ),
+      );
+}
+
+// ─── SHEET: LOGIN JUGADOR ─────────────────────────────────────────────────────
+class _JugadorLoginSheet extends StatefulWidget {
+  const _JugadorLoginSheet();
+
+  @override
+  State<_JugadorLoginSheet> createState() => _JugadorLoginSheetState();
+}
+
+class _JugadorLoginSheetState extends State<_JugadorLoginSheet> {
+  final _correoCtrl = TextEditingController();
+  final _claveCtrl = TextEditingController();
+  bool _obscure = true;
+
+  @override
+  void dispose() {
+    _correoCtrl.dispose();
+    _claveCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.loginUsuario(
+        _correoCtrl.text.trim(), _claveCtrl.text.trim());
+    if (ok && mounted) {
+      Navigator.pop(context);
+      if (auth.jugadorId != null) {
+        context.go('/jugador-dashboard');
+      } else {
+        context.go('/home');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final viewInsets = MediaQuery.of(context).viewInsets;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: viewInsets.bottom),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.bgSecondary.withValues(alpha: 0.95),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(color: AppColors.divider, width: 0.5),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.divider,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.maroonGradient,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(CupertinoIcons.sportscourt_fill,
+                          color: AppColors.gold, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Acceso Jugador',
+                            style: GoogleFonts.inter(
+                                color: AppColors.textPrimary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800)),
+                        Text('Ingresa con tus credenciales',
+                            style: GoogleFonts.inter(
+                                color: AppColors.textSecondary, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _label('CORREO ELECTRÓNICO'),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _correoCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  style: GoogleFonts.inter(color: AppColors.textPrimary),
+                  decoration: const InputDecoration(
+                    hintText: 'jugador@gol258.com',
+                    prefixIcon: Icon(CupertinoIcons.mail, size: 18),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _label('CONTRASEÑA'),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _claveCtrl,
+                  obscureText: _obscure,
+                  style: GoogleFonts.inter(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: '••••••••',
+                    prefixIcon: const Icon(CupertinoIcons.lock, size: 18),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscure
+                            ? CupertinoIcons.eye_slash
+                            : CupertinoIcons.eye,
+                        size: 18,
+                        color: AppColors.textSecondary,
+                      ),
+                      onPressed: () => setState(() => _obscure = !_obscure),
+                    ),
+                  ),
+                  onSubmitted: (_) => _login(),
+                ),
+                // Info
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 11),
+                  decoration: BoxDecoration(
+                    color: AppColors.maroonDeep.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.gold.withValues(alpha: 0.2),
+                        width: 0.5),
+                  ),
+                  child: Row(children: [
+                    const Icon(CupertinoIcons.info_circle_fill,
+                        color: AppColors.gold, size: 15),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'El coordinador te proporcionará tus credenciales al registrarte.',
+                        style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            height: 1.4),
+                      ),
+                    ),
+                  ]),
+                ),
+                if (auth.error != null) ...[
+                  const SizedBox(height: 12),
+                  _ErrorBanner(message: auth.error!),
+                ],
+                const SizedBox(height: 24),
+                _ActionBtn(
+                  loading: auth.loading,
+                  label: 'INGRESAR',
+                  onTap: _login,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _label(String text) => Text(
+        text,
+        style: GoogleFonts.inter(
+          color: AppColors.gold,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.5,
+        ),
+      );
+}
+
+// ─── WIDGETS COMPARTIDOS ──────────────────────────────────────────────────────
+class _ErrorBanner extends StatelessWidget {
+  final String message;
+  const _ErrorBanner({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border:
+            Border.all(color: AppColors.error.withValues(alpha: 0.4), width: 0.5),
+      ),
+      child: Row(children: [
+        const Icon(CupertinoIcons.xmark_circle_fill,
+            color: AppColors.error, size: 16),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(message,
+              style: GoogleFonts.inter(
+                  color: AppColors.error, fontSize: 12, height: 1.4)),
+        ),
+      ]),
+    );
+  }
+}
+
+class _ActionBtn extends StatelessWidget {
+  final bool loading;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ActionBtn(
+      {required this.loading, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: double.infinity,
@@ -590,7 +1060,6 @@ class _LoginScreenState extends State<LoginScreen>
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: loading ? null : onTap,
-          splashColor: Colors.white.withOpacity(0.1),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 17),
             child: Center(
@@ -613,73 +1082,6 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildEspectadorButton() {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: _enterAsEspectador,
-        splashColor: AppColors.gold.withOpacity(0.1),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          decoration: BoxDecoration(
-            color: AppColors.bgCard.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.gold.withOpacity(0.25), width: 0.5),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(CupertinoIcons.eye,
-                  color: AppColors.gold, size: 17),
-              const SizedBox(width: 8),
-              Text(
-                'CONTINUAR COMO ESPECTADOR',
-                style: GoogleFonts.inter(
-                  color: AppColors.gold,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: Divider(color: AppColors.divider.withOpacity(0.4))),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                '⚽',
-                style: const TextStyle(fontSize: 14),
-              ),
-            ),
-            Expanded(child: Divider(color: AppColors.divider.withOpacity(0.4))),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'LIGA GOL 258 • COBRAS • VER 1.0',
-          style: GoogleFonts.inter(
-            color: AppColors.textTertiary,
-            fontSize: 10,
-            letterSpacing: 2,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 }

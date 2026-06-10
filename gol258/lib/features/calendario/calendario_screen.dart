@@ -58,22 +58,11 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
       earliestTime = sortedEvents.first.hora;
     }
 
-    return Scaffold(
-      floatingActionButton: isAdmin
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 80),
-              child: FloatingActionButton(
-                backgroundColor: AppColors.gold,
-                foregroundColor: AppColors.bgDark,
-                tooltip: 'Programar Partido',
-                onPressed: _showPartidoForm,
-                child: const Icon(Icons.add),
-              ),
-            )
-          : null,
+ return Scaffold(
+      backgroundColor: AppColors.bgDark,
       body: partidos.loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
-          : RefreshIndicator(
+           ? const Center(child: CircularProgressIndicator(color: AppColors.gold))
+           : RefreshIndicator(
               color: AppColors.gold,
               backgroundColor: AppColors.bgCard,
               onRefresh: () => partidos.fetchPartidos(),
@@ -152,14 +141,36 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                             const SizedBox(height: 8),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  _selectedDay != null
-                                      ? DateFormat('EEEE, d MMM yyyy', 'es_MX').format(_selectedDay!).toUpperCase()
-                                      : 'SELECCIONA UNA FECHA',
-                                  style: GoogleFonts.inter(color: AppColors.gold, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 1),
-                                ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _selectedDay != null
+                                          ? DateFormat('EEEE, d MMM yyyy', 'es_MX').format(_selectedDay!).toUpperCase()
+                                          : 'SELECCIONA UNA FECHA',
+                                      style: GoogleFonts.inter(color: AppColors.gold, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 1),
+                                    ),
+                                  ),
+                                  if (isAdmin)
+                                    GestureDetector(
+                                      onTap: _showPartidoForm,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                        decoration: BoxDecoration(
+                                          gradient: AppColors.goldGradient,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.edit, color: AppColors.bgDark, size: 14),
+                                            const SizedBox(width: 5),
+                                            Text('Partido', style: GoogleFonts.inter(color: AppColors.bgDark, fontSize: 12, fontWeight: FontWeight.w700)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                             if (selectedEvents.isNotEmpty)
